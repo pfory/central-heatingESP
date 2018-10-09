@@ -19,7 +19,9 @@ GIT - https://github.com/pfory/central-heating
 #include <FS.h>
 #include <ArduinoOTA.h>
 #include <WiFiManager.h> 
-
+#include <TimeLib.h>
+#include <Timezone.h>
+#include <WiFiUdp.h>
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWireOUT(ONE_WIRE_BUS_OUT);
@@ -53,8 +55,17 @@ unsigned long         hbDelay                  = 500;
 unsigned long         lastHB                   = hbDelay * -1;
 uint32_t              heartBeat                = 0;
 
+static const char ntpServerName[] = "tik.cesnet.cz";
+//const int timeZone = 2;     // Central European Time
+//Central European Time (Frankfurt, Paris)
+TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
+TimeChangeRule CET = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
+Timezone CE(CEST, CET);
 
-                    
+WiFiUDP EthernetUdp;
+unsigned int localPort = 8888;  // local port to listen for UDP packets
+time_t getNtpTime();
+
 #define beep
 // #ifdef beep
 // #include "beep.h"
@@ -239,12 +250,21 @@ void setup(void) {
 	DEBUG_PRINT("IP address: ");
 	DEBUG_PRINTLN(WiFi.localIP());
 
-
+  DEBUG_PRINTLN("Setup TIME");
+  EthernetUdp.begin(localPort);
+  DEBUG_PRINT("Local port: ");
+  DEBUG_PRINTLN(EthernetUdp.localPort());
+  DEBUG_PRINTLN("waiting for sync");
+  setSyncProvider(getNtpTime);
+  setSyncInterval(300);
+  
+  printSystemTime();
 #ifdef beep
   //peep.Delay(100,40,1,255);
   tone(BUZZERPIN, 5000, 5);
 #endif  
-  lcd.begin();               // initialize the lcd 
+  lcd.init();               // initialize the lcd 
+  lcd.backlight();
   lcd.home();
   lcd.print(SW_NAME);
   PRINT_SPACE
@@ -1051,4 +1071,101 @@ void printAddress(DeviceAddress deviceAddress)
     if (deviceAddress[i] < 16) DEBUG_PRINT("0");
     DEBUG_PRINT(deviceAddress[i], HEX);
   }
+}
+
+void printSystemTime(){
+  DEBUG_PRINT(day());
+  DEBUG_PRINT(".");
+  DEBUG_PRINT(month());
+  DEBUG_PRINT(".");
+  DEBUG_PRINT(year());
+  DEBUG_PRINT(" ");
+  DEBUG_PRINT(hour());
+  printDigits(minute());
+  printDigits(second());
+}
+
+void printDigits(int digits){
+  // utility function for digital clock display: prints preceding
+  // colon and leading 0
+  DEBUG_PRINT(":");
+  if(digits < 10)
+    DEBUG_PRINT('0');
+  DEBUG_PRINT(digits);
+}
+
+/*-------- NTP code ----------*/
+
+const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
+byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
+
+time_t getNtpTime()
+{
+  //IPAddress ntpServerIP; // NTP server's ip address
+  IPAddress ntpServerIP = IPAddress(195, 113, 144, 201);
+
+  while (EthernetUdp.parsePacket() > 0) ; // discard any previously received packets
+  DEBUG_PRINTLN("Transmit NTP Request");
+  // get a random server from the pool
+  //WiFi.hostByName(ntpServerName, ntpServerIP);
+  DEBUG_PRINT(ntpServerName);
+  DEBUG_PRINT(": ");
+  DEBUG_PRINTLN(ntpServerIP);
+  sendNTPpacket(ntpServerIP);
+  uint32_t beginWait = millis();
+  while (millis() - beginWait < 1500) {
+    int size = EthernetUdp.parsePacket();
+    if (size >= NTP_PACKET_SIZE) {
+      DEBUG_PRINTLN("Receive NTP Response");
+      EthernetUdp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
+      unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
+      unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+      // combine the four bytes (two words) into a long integer
+      // this is NTP time (seconds since Jan 1 1900):
+      unsigned long secsSince1900 = highWord << 16 | lowWord;
+      DEBUG_PRINT("Seconds since Jan 1 1900 = " );
+      DEBUG_PRINTLN(secsSince1900);
+
+      // now convert NTP time into everyday time:
+      DEBUG_PRINT("Unix time = ");
+      // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
+      const unsigned long seventyYears = 2208988800UL;
+      // subtract seventy years:
+      unsigned long epoch = secsSince1900 - seventyYears;
+      // print Unix time:
+      DEBUG_PRINTLN(epoch);
+	  
+      TimeChangeRule *tcr;
+      time_t utc;
+      utc = epoch;
+      
+      return CE.toLocal(utc, &tcr);
+      //return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
+    }
+  }
+  DEBUG_PRINTLN("No NTP Response :-(");
+  return 0; // return 0 if unable to get the time
+}
+
+// send an NTP request to the time server at the given address
+void sendNTPpacket(IPAddress &address)
+{
+  // set all bytes in the buffer to 0
+  memset(packetBuffer, 0, NTP_PACKET_SIZE);
+  // Initialize values needed to form NTP request
+  // (see URL above for details on the packets)
+  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+  packetBuffer[1] = 0;     // Stratum, or type of clock
+  packetBuffer[2] = 6;     // Polling Interval
+  packetBuffer[3] = 0xEC;  // Peer Clock Precision
+  // 8 bytes of zero for Root Delay & Root Dispersion
+  packetBuffer[12] = 49;
+  packetBuffer[13] = 0x4E;
+  packetBuffer[14] = 49;
+  packetBuffer[15] = 52;
+  // all NTP fields have been given values, now
+  // you can send a packet requesting a timestamp:
+  EthernetUdp.beginPacket(address, 123); //NTP requests are to port 123
+  EthernetUdp.write(packetBuffer, NTP_PACKET_SIZE);
+  EthernetUdp.endPacket();
 }

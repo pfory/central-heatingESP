@@ -65,9 +65,9 @@ Pro Mini 328 Layout
 #define TEMP_ERR -127     
 
 //display
-#define LCDADDRESS   0x27
-#define LCDROWS      4
-#define LCDCOLS      20
+#define LCDADDRESS                          0x27
+#define LCDROWS                             4
+#define LCDCOLS                             20
 
 //wiring
 #define ONE_WIRE_BUS_IN                     0
@@ -85,8 +85,8 @@ Pro Mini 328 Layout
 #define TEMPERATURE_PRECISION 12
 
 //keypad i2c address
-#define I2CADDR       0x20
-#define PRINT_SPACE           lcd.print(F(" "));
+#define I2CADDR                             0x20
+#define PRINT_SPACE                         lcd.print(F(" "));
 
 
 #endif
