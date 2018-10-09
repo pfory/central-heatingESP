@@ -36,24 +36,29 @@ DallasTemperature sensorsUT(&oneWireUT);
 DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[15];
 
-const unsigned long   measDelay                = 10000; //in ms
-unsigned long         lastMeas                 = measDelay * -1;
-const unsigned long   measTime                 = 750; //in ms
-const unsigned long   sendDelay                = 20000; //in ms
-unsigned long         lastSend                 = sendDelay * -1;
-bool                  startConversion          = false;
-unsigned long         startConversionMillis    = 0;
-float                 tempOUT                  = 0.f;
-float                 tempIN                   = 0.f;
-float                 tempUT[12];           
-bool                  relay                    = HIGH;
-const unsigned long   pumpProtect              = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
-const unsigned long   pumpProtectRun           = 300000;     //1000*60*5;     //in ms = 5 min
-bool                  firstMeasComplete        = false;
-bool                  tempRefresh              = false;
-unsigned long         hbDelay                  = 500;
-unsigned long         lastHB                   = hbDelay * -1;
-uint32_t              heartBeat                = 0;
+const unsigned long   measDelay                  = 10000; //in ms
+unsigned long         lastMeas                   = measDelay * -1;
+const unsigned long   measTime                   = 750; //in ms
+const unsigned long   sendDelay                  = 20000; //in ms
+unsigned long         lastSend                   = sendDelay * -1;
+bool                  startConversion            = false;
+unsigned long         startConversionMillis      = 0;
+float                 tempOUT                    = 0.f;
+float                 tempIN                     = 0.f;
+float                 tempUT[12];             
+bool                  relay                      = HIGH;
+const unsigned long   pumpProtect                = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
+const unsigned long   pumpProtectRun             = 300000;     //1000*60*5;     //in ms = 5 min
+bool                  firstMeasComplete          = false;
+bool                  tempRefresh                = false;
+unsigned long         hbDelay                    = 500;
+unsigned long         lastHB                     = hbDelay * -1;
+uint32_t              heartBeat                  = 0;
+float                 temp[15];
+float                 tempINKamna, tempOUTKamna  = 0;
+int                   pumpStatus                 = 0;
+
+#define SIMTEMP
 
 static const char ntpServerName[] = "tik.cesnet.cz";
 //const int timeZone = 2;     // Central European Time
@@ -72,10 +77,22 @@ time_t getNtpTime();
 // Beep peep(BUZZERPIN);
 // #endif
 
+#define verbose
+#ifdef verbose
+  #define DEBUG_PRINT(x)         Serial.print (x)
+  #define DEBUG_PRINTDEC(x)      Serial.print (x, DEC)
+  #define DEBUG_PRINTLN(x)       Serial.println (x)
+  #define DEBUG_PRINTF(x, y)     Serial.printf (x, y)
+  #define DEBUG_PRINTHEX(x)   Serial.print (x, HEX)
+  #define PORTSPEED 115200
+#else
+  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINTDEC(x)
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINTF(x, y)
+#endif 
 
 struct StoreStruct {
-  // This is for mere detection if they are your settings
-  char            version[4];
   // The variables of your settings
   unsigned int    moduleId;  // module id
   bool            relay;     // relay state
@@ -84,11 +101,10 @@ struct StoreStruct {
   float           tempAlarm;
   //tmElements_t    lastPumpRun;
 } storage = {
-  CONFIG_VERSION,
   // The default module 0
   0,
   0, // off
-  60,
+  70,
   5,
   95
 };
@@ -152,26 +168,26 @@ WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 
 /****************************** Feeds ***************************************/
-Adafruit_MQTT_Publish version             = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/VersionSWCentral");
-Adafruit_MQTT_Publish hb                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/HeartBeat");
-Adafruit_MQTT_Publish tINKamna            = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/tINKamna");
-Adafruit_MQTT_Publish tOUTKamna           = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/tOUTKamna");
-Adafruit_MQTT_Publish sPumpKamna          = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/sPumpKamna/status");
-Adafruit_MQTT_Publish t0                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t0");
-Adafruit_MQTT_Publish t1                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t1");
-Adafruit_MQTT_Publish t2                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t2");
-Adafruit_MQTT_Publish t3                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t3");
-Adafruit_MQTT_Publish t4                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t4");
-Adafruit_MQTT_Publish t5                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t5");
-Adafruit_MQTT_Publish t6                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t6");
-Adafruit_MQTT_Publish t7                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t7");
-Adafruit_MQTT_Publish t8                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t8");
-Adafruit_MQTT_Publish t9                  = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t9");
-Adafruit_MQTT_Publish t10                 = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t10");
-Adafruit_MQTT_Publish t11                 = Adafruit_MQTT_Publish(&mqtt, "/home/Corridor/test/t11");
+Adafruit_MQTT_Publish version             = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "VersionSWCentral");
+Adafruit_MQTT_Publish hb                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "HeartBeat");
+Adafruit_MQTT_Publish tINKamna            = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "tINKamna");
+Adafruit_MQTT_Publish tOUTKamna           = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "tOUTKamna");
+Adafruit_MQTT_Publish sPumpKamna          = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "sPumpKamna/status");
+Adafruit_MQTT_Publish t0                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t0");
+Adafruit_MQTT_Publish t1                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t1");
+Adafruit_MQTT_Publish t2                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t2");
+Adafruit_MQTT_Publish t3                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t3");
+Adafruit_MQTT_Publish t4                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t4");
+Adafruit_MQTT_Publish t5                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t5");
+Adafruit_MQTT_Publish t6                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t6");
+Adafruit_MQTT_Publish t7                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t7");
+Adafruit_MQTT_Publish t8                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t8");
+Adafruit_MQTT_Publish t9                  = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t9");
+Adafruit_MQTT_Publish t10                 = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t10");
+Adafruit_MQTT_Publish t11                 = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t11");
 
 
-IPAddress _ip           = IPAddress(192, 168, 1, 109);
+IPAddress _ip           = IPAddress(192, 168, 1, 139);
 IPAddress _gw           = IPAddress(192, 168, 1, 1);
 IPAddress _sn           = IPAddress(255, 255, 255, 0);
 
@@ -195,8 +211,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
-#ifdef serial
-  Serial.begin(SERIAL_SPEED);
+#ifdef verbose
+  Serial.begin(PORTSPEED);
 #endif
   DEBUG_PRINT(F(SW_NAME));
   DEBUG_PRINT(F(" "));
@@ -228,7 +244,7 @@ void setup(void) {
   WiFiManager wifiManager;
   //reset settings - for testing
   //wifiManager.resetSettings();
-  wifiManager.setConnectTimeout(600); //5min
+  wifiManager.setConnectTimeout(5); //5min
 
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
@@ -238,17 +254,12 @@ void setup(void) {
   //WiFi.begin(ssid, password);
   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
-  if (!wifiManager.autoConnect("Anemometer", "password")) {
+  if (!wifiManager.autoConnect("CentralHeating", "password")) {
     DEBUG_PRINTLN("failed to connect, we should reset as see if it connects");
     delay(3000);
     ESP.reset();
     delay(5000);
   }
-
-	DEBUG_PRINTLN("");
-	DEBUG_PRINT("Connected to ");
-	DEBUG_PRINT("IP address: ");
-	DEBUG_PRINTLN(WiFi.localIP());
 
   DEBUG_PRINTLN("Setup TIME");
   EthernetUdp.begin(localPort);
@@ -273,6 +284,7 @@ void setup(void) {
   keypad.begin();
   
   loadConfig();
+  DEBUG_PRINTLN();
   DEBUG_PRINT(F("Temp ON "));
   DEBUG_PRINTLN(storage.tempON);
   DEBUG_PRINT(F("Temp OFF diff "));
@@ -290,8 +302,11 @@ void setup(void) {
     sensorsOUT.begin(); 
     sensorsIN.begin(); 
     sensorsUT.begin(); 
-
+#ifdef SIMTEMP
+    if (1==0) {
+#else
     if (sensorsIN.getDeviceCount()==0 || sensorsOUT.getDeviceCount()==0) {
+#endif
 #ifdef beep
       //peep.Delay(100,40,1,255);
 #endif
@@ -675,7 +690,85 @@ void printTemp() {
 }
 
 void sendDataMQTT() {
+  MQTT_connect();
+
+  if (! tINKamna.publish(tempINKamna)) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! tOUTKamna.publish(tempOUTKamna)) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! sPumpKamna.publish(pumpStatus)) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
   
+
+  if (! t0.publish(temp[0])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t1.publish(temp[1])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t2.publish(temp[2])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t3.publish(temp[3])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t4.publish(temp[4])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t5.publish(temp[5])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t6.publish(temp[6])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t7.publish(temp[7])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t8.publish(temp[8])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t9.publish(temp[9])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t10.publish(temp[10])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
+  if (! t11.publish(temp[11])) {
+    DEBUG_PRINTLN("failed");
+  } else {
+    DEBUG_PRINTLN("OK!");
+  }
 }
 
 
@@ -1069,7 +1162,7 @@ void printAddress(DeviceAddress deviceAddress)
   {
     // zero pad the address if necessary
     if (deviceAddress[i] < 16) DEBUG_PRINT("0");
-    DEBUG_PRINT(deviceAddress[i], HEX);
+    DEBUG_PRINTHEX(deviceAddress[i]);
   }
 }
 
@@ -1168,4 +1261,31 @@ void sendNTPpacket(IPAddress &address)
   EthernetUdp.beginPacket(address, 123); //NTP requests are to port 123
   EthernetUdp.write(packetBuffer, NTP_PACKET_SIZE);
   EthernetUdp.endPacket();
+}
+
+// Function to connect and reconnect as necessary to the MQTT server.
+// Should be called in the loop function and it will take care if connecting.
+void MQTT_connect() {
+  int8_t ret;
+
+  // Stop if already connected.
+  if (mqtt.connected()) {
+    return;
+  }
+
+  DEBUG_PRINT("Connecting to MQTT... ");
+
+  uint8_t retries = 3;
+  while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
+       DEBUG_PRINTLN(mqtt.connectErrorString(ret));
+       DEBUG_PRINTLN("Retrying MQTT connection in 5 seconds...");
+       mqtt.disconnect();
+       delay(5000);  // wait 5 seconds
+       retries--;
+       if (retries == 0) {
+         // basically die and wait for WDT to reset me
+         while (1);
+       }
+  }
+  DEBUG_PRINTLN("MQTT Connected!");
 }

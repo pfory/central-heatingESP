@@ -5,10 +5,6 @@
 #define     VERSION                      "0.93"
 #define     SW_NAME                      "Central heat"
 
-//EEPROM config
-#define CONFIG_START 0
-#define CONFIG_VERSION "v08"
-
 /*
 --------------------------------------------------------------------------------------------------------------------------
 
@@ -44,19 +40,7 @@ Pro Mini 328 Layout
 --------------------------------------------------------------------------------------------------------------------------
 */
 
-#define verbose
-#ifdef verbose
- #define DEBUG_PRINT(x)         Serial.print (x)
- #define DEBUG_PRINTDEC(x)      Serial.print (x, DEC)
- #define DEBUG_PRINTLN(x)       Serial.println (x)
- #define DEBUG_PRINTF(x, y)     Serial.printf (x, y)
- #define PORTSPEED 115200
-#else
- #define DEBUG_PRINT(x)
- #define DEBUG_PRINTDEC(x)
- #define DEBUG_PRINTLN(x)
- #define DEBUG_PRINTF(x, y)
-#endif 
+#define MQTTBASE "/home/Corridor/test/"
 
 //pins for softwareserial
 #define RX A2
