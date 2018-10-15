@@ -244,7 +244,7 @@ void setup(void) {
   WiFiManager wifiManager;
   //reset settings - for testing
   //wifiManager.resetSettings();
-  wifiManager.setConnectTimeout(5); //5min
+  wifiManager.setConnectTimeout(60); //5min
 
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
@@ -254,6 +254,7 @@ void setup(void) {
   //WiFi.begin(ssid, password);
   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
+ 
   if (!wifiManager.autoConnect("CentralHeating", "password")) {
     DEBUG_PRINTLN("failed to connect, we should reset as see if it connects");
     delay(3000);
