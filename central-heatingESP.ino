@@ -186,6 +186,8 @@ Adafruit_MQTT_Publish t9                  = Adafruit_MQTT_Publish(&mqtt, MQTTBAS
 Adafruit_MQTT_Publish t10                 = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t10");
 Adafruit_MQTT_Publish t11                 = Adafruit_MQTT_Publish(&mqtt, MQTTBASE "t11");
 
+Adafruit_MQTT_Subscribe tONSetup          = Adafruit_MQTT_Subscribe(&mqtt, MQTTBASE "tONSetup");
+Adafruit_MQTT_Subscribe tDiffSetup        = Adafruit_MQTT_Subscribe(&mqtt, MQTTBASE "tDiffSetup");
 
 IPAddress _ip           = IPAddress(192, 168, 1, 139);
 IPAddress _gw           = IPAddress(192, 168, 1, 1);
@@ -444,6 +446,7 @@ void setup(void) {
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
 void loop(void) { 
+  tempSetup();
   if (millis() - lastMeas >= measDelay) {
     lastMeas = millis();
     DEBUG_PRINTLN(millis());
@@ -605,6 +608,25 @@ void getTemp() {
   // }
 
   firstMeasComplete=true;
+}
+
+void tempSetup() {
+  MQTT_connect();
+  Adafruit_MQTT_Subscribe *subscription;
+  while ((subscription = mqtt.readSubscription(5000))) {
+    if (subscription == &tONSetup) {
+      char *pNew = (char *)tONSetup.lastread;
+      uint32_t pPassw=atol(pNew); 
+      DEBUG_PRINT(F("Set ON temperature!"));
+      storage.tempON = tONSetup;
+    }
+    if (subscription == &tDiffSetup) {
+      char *pNew = (char *)tDiffSetup.lastread;
+      uint32_t pPassw=atol(pNew); 
+      DEBUG_PRINT(F("Set temperature diference!"));
+      storage.tempOFFDiff = tDiffSetup;
+    }
+  }
 }
 
 void printTemp() {
