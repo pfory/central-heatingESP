@@ -4012,30 +4012,30 @@ ESP8266 module</description>
 <segment>
 <wire x1="33.02" y1="60.96" x2="20.32" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="20.32" y1="60.96" x2="12.7" y2="60.96" width="0.1524" layer="91"/>
-<wire x1="12.7" y1="91.44" x2="12.7" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="R1" gate="G$1" pin="1"/>
+<wire x1="12.7" y1="88.9" x2="12.7" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="20.32" y1="63.5" x2="20.32" y2="60.96" width="0.1524" layer="91"/>
 <junction x="20.32" y="60.96"/>
-<pinref part="TIN" gate="-2" pin="KL"/>
-<wire x1="-2.54" y1="91.44" x2="12.7" y2="91.44" width="0.1524" layer="91"/>
 <pinref part="WEMOS1" gate="D1" pin="D0"/>
 <wire x1="48.26" y1="66.04" x2="33.02" y2="66.04" width="0.1524" layer="91"/>
 <wire x1="33.02" y1="66.04" x2="33.02" y2="60.96" width="0.1524" layer="91"/>
+<pinref part="TIN" gate="-3" pin="KL"/>
+<wire x1="-2.54" y1="88.9" x2="12.7" y2="88.9" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$3" class="0">
 <segment>
 <wire x1="38.1" y1="53.34" x2="15.24" y2="53.34" width="0.1524" layer="91"/>
-<pinref part="TUT" gate="-2" pin="KL"/>
 <wire x1="15.24" y1="53.34" x2="7.62" y2="53.34" width="0.1524" layer="91"/>
-<wire x1="-2.54" y1="60.96" x2="7.62" y2="60.96" width="0.1524" layer="91"/>
-<wire x1="7.62" y1="60.96" x2="7.62" y2="53.34" width="0.1524" layer="91"/>
 <pinref part="R3" gate="G$1" pin="1"/>
+<wire x1="7.62" y1="58.42" x2="7.62" y2="53.34" width="0.1524" layer="91"/>
 <wire x1="15.24" y1="63.5" x2="15.24" y2="53.34" width="0.1524" layer="91"/>
 <junction x="15.24" y="53.34"/>
 <pinref part="WEMOS1" gate="D1" pin="D6"/>
 <wire x1="48.26" y1="60.96" x2="38.1" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="60.96" x2="38.1" y2="53.34" width="0.1524" layer="91"/>
+<pinref part="TUT" gate="-3" pin="KL"/>
+<wire x1="-2.54" y1="58.42" x2="7.62" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="GND" class="0">
@@ -4070,22 +4070,25 @@ ESP8266 module</description>
 <wire x1="132.08" y1="35.56" x2="132.08" y2="33.02" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="0" y1="73.66" x2="0" y2="58.42" width="0.1524" layer="91"/>
-<pinref part="TOUT" gate="-3" pin="KL"/>
-<wire x1="0" y1="58.42" x2="0" y2="53.34" width="0.1524" layer="91"/>
-<wire x1="-2.54" y1="73.66" x2="0" y2="73.66" width="0.1524" layer="91"/>
-<pinref part="GND5" gate="1" pin="GND"/>
-<pinref part="TUT" gate="-3" pin="KL"/>
-<wire x1="-2.54" y1="58.42" x2="0" y2="58.42" width="0.1524" layer="91"/>
-<junction x="0" y="58.42"/>
-<wire x1="0" y1="73.66" x2="0" y2="88.9" width="0.1524" layer="91"/>
-<junction x="0" y="73.66"/>
-<pinref part="TIN" gate="-3" pin="KL"/>
-<wire x1="0" y1="88.9" x2="-2.54" y2="88.9" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="NAPAJENI" gate="-2" pin="KL"/>
 <pinref part="GND6" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="GND5" gate="1" pin="GND"/>
+<wire x1="0" y1="91.44" x2="0" y2="78.74" width="0.1524" layer="91"/>
+<wire x1="0" y1="78.74" x2="0" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="0" y1="76.2" x2="0" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="0" y1="63.5" x2="0" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="0" y1="60.96" x2="0" y2="53.34" width="0.1524" layer="91"/>
+<pinref part="TIN" gate="-1" pin="KL"/>
+<wire x1="-2.54" y1="93.98" x2="0" y2="93.98" width="0.1524" layer="91"/>
+<wire x1="0" y1="93.98" x2="0" y2="91.44" width="0.1524" layer="91"/>
+<pinref part="TOUT" gate="-1" pin="KL"/>
+<wire x1="-2.54" y1="78.74" x2="0" y2="78.74" width="0.1524" layer="91"/>
+<junction x="0" y="78.74"/>
+<pinref part="TUT" gate="-1" pin="KL"/>
+<wire x1="-2.54" y1="63.5" x2="0" y2="63.5" width="0.1524" layer="91"/>
+<junction x="0" y="63.5"/>
 </segment>
 </net>
 <net name="N$5" class="0">
@@ -4197,22 +4200,23 @@ ESP8266 module</description>
 <junction x="17.78" y="73.66"/>
 <junction x="20.32" y="73.66"/>
 <wire x1="25.4" y1="93.98" x2="25.4" y2="73.66" width="0.1524" layer="91"/>
-<pinref part="TIN" gate="-1" pin="KL"/>
-<wire x1="-2.54" y1="93.98" x2="2.54" y2="93.98" width="0.1524" layer="91"/>
-<wire x1="2.54" y1="63.5" x2="2.54" y2="78.74" width="0.1524" layer="91"/>
-<pinref part="TUT" gate="-1" pin="KL"/>
-<wire x1="2.54" y1="78.74" x2="2.54" y2="93.98" width="0.1524" layer="91"/>
-<wire x1="-2.54" y1="63.5" x2="2.54" y2="63.5" width="0.1524" layer="91"/>
 <wire x1="2.54" y1="93.98" x2="17.78" y2="93.98" width="0.1524" layer="91"/>
-<junction x="2.54" y="93.98"/>
-<pinref part="TOUT" gate="-1" pin="KL"/>
 <wire x1="17.78" y1="93.98" x2="25.4" y2="93.98" width="0.1524" layer="91"/>
-<wire x1="-2.54" y1="78.74" x2="2.54" y2="78.74" width="0.1524" layer="91"/>
-<junction x="2.54" y="78.74"/>
 <wire x1="20.32" y1="73.66" x2="25.4" y2="73.66" width="0.1524" layer="91"/>
 <pinref part="P+2" gate="1" pin="+5V"/>
 <wire x1="17.78" y1="99.06" x2="17.78" y2="93.98" width="0.1524" layer="91"/>
 <junction x="17.78" y="93.98"/>
+<pinref part="TIN" gate="-2" pin="KL"/>
+<wire x1="-2.54" y1="91.44" x2="2.54" y2="91.44" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="91.44" x2="2.54" y2="93.98" width="0.1524" layer="91"/>
+<pinref part="TOUT" gate="-2" pin="KL"/>
+<wire x1="-2.54" y1="76.2" x2="2.54" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="76.2" x2="2.54" y2="91.44" width="0.1524" layer="91"/>
+<junction x="2.54" y="91.44"/>
+<pinref part="TUT" gate="-2" pin="KL"/>
+<wire x1="-2.54" y1="60.96" x2="2.54" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="60.96" x2="2.54" y2="76.2" width="0.1524" layer="91"/>
+<junction x="2.54" y="76.2"/>
 </segment>
 <segment>
 <pinref part="I2CKEYB" gate="-2" pin="KL"/>
@@ -4248,12 +4252,12 @@ ESP8266 module</description>
 <wire x1="17.78" y1="63.5" x2="17.78" y2="55.88" width="0.1524" layer="91"/>
 <junction x="17.78" y="55.88"/>
 <wire x1="17.78" y1="55.88" x2="10.16" y2="55.88" width="0.1524" layer="91"/>
-<pinref part="TOUT" gate="-2" pin="KL"/>
-<wire x1="-2.54" y1="76.2" x2="10.16" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="10.16" y1="76.2" x2="10.16" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="WEMOS1" gate="D1" pin="D5"/>
+<wire x1="10.16" y1="73.66" x2="10.16" y2="55.88" width="0.1524" layer="91"/>
 <wire x1="48.26" y1="63.5" x2="35.56" y2="63.5" width="0.1524" layer="91"/>
 <wire x1="35.56" y1="63.5" x2="35.56" y2="55.88" width="0.1524" layer="91"/>
+<pinref part="TOUT" gate="-3" pin="KL"/>
+<wire x1="-2.54" y1="73.66" x2="10.16" y2="73.66" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
