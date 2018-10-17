@@ -157,7 +157,7 @@ void tick()
   digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
 }
 
-#define AIO_SERVER      "192.168.1.56"
+#define AIO_SERVER      "192.168.1.80"
 //#define AIO_SERVER      "178.77.238.20"
 #define AIO_SERVERPORT  1883
 #define AIO_USERNAME    "datel"
@@ -246,7 +246,7 @@ void setup(void) {
   WiFiManager wifiManager;
   //reset settings - for testing
   //wifiManager.resetSettings();
-  wifiManager.setConnectTimeout(5); //5min
+  wifiManager.setConnectTimeout(60); //5min
 
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
@@ -256,6 +256,7 @@ void setup(void) {
   //WiFi.begin(ssid, password);
   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
+ 
   if (!wifiManager.autoConnect("CentralHeating", "password")) {
     DEBUG_PRINTLN("failed to connect, we should reset as see if it connects");
     delay(3000);
@@ -618,13 +619,13 @@ void tempSetup() {
       char *pNew = (char *)tONSetup.lastread;
       uint32_t pPassw=atol(pNew); 
       DEBUG_PRINT(F("Set ON temperature!"));
-      storage.tempON = tONSetup;
+      //storage.tempON = tONSetup;
     }
     if (subscription == &tDiffSetup) {
       char *pNew = (char *)tDiffSetup.lastread;
       uint32_t pPassw=atol(pNew); 
       DEBUG_PRINT(F("Set temperature diference!"));
-      storage.tempOFFDiff = tDiffSetup;
+      //storage.tempOFFDiff = tDiffSetup;
     }
   }
 }
