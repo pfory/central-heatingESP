@@ -450,7 +450,7 @@ void loop(void) {
   tempSetup();
   if (millis() - lastMeas >= measDelay) {
     lastMeas = millis();
-    DEBUG_PRINTLN(millis());
+    //DEBUG_PRINTLN(millis());
     startMeas(); 
     startConversion=true;
     startConversionMillis = millis();
@@ -458,7 +458,7 @@ void loop(void) {
   if (startConversion && (millis() - startConversionMillis >= measTime)) {
     startConversion=false;
     getTemp();
-    //printTemp();
+    printTemp();
     tempRefresh = true;
     //poslani teploty do LED displeje
     Wire.beginTransmission(8);
@@ -715,82 +715,111 @@ void printTemp() {
 void sendDataMQTT() {
   MQTT_connect();
 
+  DEBUG_PRINT("tINKamna = ");
+  DEBUG_PRINT(tempINKamna);
   if (! tINKamna.publish(tempINKamna)) {
-    DEBUG_PRINTLN("failed");
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK");
   }
+  DEBUG_PRINT("tOUTKamna = ");
+  DEBUG_PRINT(tempOUTKamna);
   if (! tOUTKamna.publish(tempOUTKamna)) {
-    DEBUG_PRINTLN("failed");
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
+  DEBUG_PRINT("sPumpKamna = ");
+  DEBUG_PRINT(pumpStatus);
   if (! sPumpKamna.publish(pumpStatus)) {
-    DEBUG_PRINTLN("failed");
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
   
-
-  if (! t0.publish(temp[0])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t0 = ");
+  DEBUG_PRINT(tempUT[0]);
+  if (! t0.publish(tempUT[0])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t1.publish(temp[1])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t1 = ");
+  DEBUG_PRINT(tempUT[1]);
+  if (! t1.publish(tempUT[1])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t2.publish(temp[2])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t2 = ");
+  DEBUG_PRINT(tempUT[2]);
+  if (! t2.publish(tempUT[2])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t3.publish(temp[3])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t3 = ");
+  DEBUG_PRINT(tempUT[3]);
+  if (! t3.publish(tempUT[3])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t4.publish(temp[4])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t4 = ");
+  DEBUG_PRINT(tempUT[4]);
+  if (! t4.publish(tempUT[4])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t5.publish(temp[5])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t5 = ");
+  DEBUG_PRINT(tempUT[5]);
+  if (! t5.publish(tempUT[5])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t6.publish(temp[6])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t6 = ");
+  DEBUG_PRINT(tempUT[6]);
+  if (! t6.publish(tempUT[6])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t7.publish(temp[7])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t7 = ");
+  DEBUG_PRINT(tempUT[7]);
+  if (! t7.publish(tempUT[7])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t8.publish(temp[8])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t8 = ");
+  DEBUG_PRINT(tempUT[8]);
+  if (! t8.publish(tempUT[8])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t9.publish(temp[9])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t9 = ");
+  DEBUG_PRINT(tempUT[9]);
+  if (! t9.publish(tempUT[9])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t10.publish(temp[10])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t10 = ");
+  DEBUG_PRINT(tempUT[10]);
+  if (! t10.publish(tempUT[10])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
-  if (! t11.publish(temp[11])) {
-    DEBUG_PRINTLN("failed");
+  DEBUG_PRINT("t11 = ");
+  DEBUG_PRINT(tempUT[11]);
+  if (! t11.publish(tempUT[11])) {
+    DEBUG_PRINTLN(" failed");
   } else {
-    DEBUG_PRINTLN("OK!");
+    DEBUG_PRINTLN(" OK!");
   }
 }
 

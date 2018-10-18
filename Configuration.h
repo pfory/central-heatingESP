@@ -42,9 +42,6 @@ Pro Mini 328 Layout
 
 #define MQTTBASE "/home/Corridor/test/"
 
-//pins for softwareserial
-#define RX A2
-#define TX A3
 
 #define TEMP_ERR -127     
 
@@ -54,12 +51,12 @@ Pro Mini 328 Layout
 #define LCDCOLS                             20
 
 //wiring
-#define ONE_WIRE_BUS_IN                     0
-#define ONE_WIRE_BUS_OUT                    2
-#define ONE_WIRE_BUS_UT                     15
-#define RELAYPIN                            16
-#define LEDPIN                              12
-#define BUZZERPIN                           13
+#define ONE_WIRE_BUS_IN                     D5
+#define ONE_WIRE_BUS_OUT                    D6
+#define ONE_WIRE_BUS_UT                     D7
+#define RELAYPIN                            0
+#define LEDPIN                              0
+#define BUZZERPIN                           0
 
 //#define IN                                  0
 //#define OUT                                 1
