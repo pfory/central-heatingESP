@@ -4227,9 +4227,9 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <attribute name="NAME" x="16.51" y="59.4614" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="16.51" y="64.262" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="R4" gate="G$1" x="-12.7" y="63.5" smashed="yes" rot="R180">
-<attribute name="NAME" x="-8.89" y="62.0014" size="1.778" layer="95" rot="R180"/>
-<attribute name="VALUE" x="-8.89" y="66.802" size="1.778" layer="96" rot="R180"/>
+<instance part="R4" gate="G$1" x="-10.16" y="63.5" smashed="yes" rot="R180">
+<attribute name="NAME" x="-6.35" y="62.0014" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="-6.35" y="66.802" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="SOURCE" gate="-1" x="17.78" y="15.24" smashed="yes">
 <attribute name="NAME" x="16.51" y="16.129" size="1.778" layer="95" rot="R180"/>
@@ -4285,12 +4285,12 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <segment>
 <pinref part="DS18B20" gate="-1" pin="KL"/>
 <pinref part="GND4" gate="1" pin="GND"/>
-<pinref part="DS18B2" gate="-1" pin="KL"/>
 <pinref part="DS18B1" gate="-1" pin="KL"/>
-<wire x1="-17.78" y1="50.8" x2="5.08" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="5.08" y1="50.8" x2="27.94" y2="50.8" width="0.1524" layer="91"/>
-<junction x="5.08" y="50.8"/>
 <junction x="27.94" y="50.8"/>
+<pinref part="DS18B2" gate="-1" pin="KL"/>
+<wire x1="-17.78" y1="50.8" x2="5.08" y2="50.8" width="0.1524" layer="91"/>
+<junction x="5.08" y="50.8"/>
 </segment>
 <segment>
 <pinref part="GND2" gate="1" pin="GND"/>
@@ -4370,7 +4370,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <pinref part="R4" gate="G$1" pin="1"/>
 <pinref part="R3" gate="G$1" pin="1"/>
 <wire x1="17.78" y1="45.72" x2="27.94" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="-7.62" y1="63.5" x2="17.78" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="-5.08" y1="63.5" x2="17.78" y2="63.5" width="0.1524" layer="91"/>
 <wire x1="17.78" y1="63.5" x2="17.78" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="17.78" y1="60.96" x2="17.78" y2="45.72" width="0.1524" layer="91"/>
 <junction x="17.78" y="60.96"/>
@@ -4417,12 +4417,13 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <wire x1="40.64" y1="53.34" x2="45.72" y2="53.34" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="58.42" x2="0" y2="58.42" width="0.1524" layer="91"/>
 <wire x1="0" y1="58.42" x2="0" y2="55.88" width="0.1524" layer="91"/>
-<pinref part="DS18B2" gate="-2" pin="KL"/>
 <pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="-17.78" y1="48.26" x2="-17.78" y2="55.88" width="0.1524" layer="91"/>
-<wire x1="-17.78" y1="55.88" x2="-17.78" y2="63.5" width="0.1524" layer="91"/>
-<wire x1="0" y1="55.88" x2="-17.78" y2="55.88" width="0.1524" layer="91"/>
-<junction x="-17.78" y="55.88"/>
+<wire x1="-15.24" y1="55.88" x2="-15.24" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="0" y1="55.88" x2="-15.24" y2="55.88" width="0.1524" layer="91"/>
+<pinref part="DS18B2" gate="-2" pin="KL"/>
+<wire x1="-17.78" y1="48.26" x2="-15.24" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="-15.24" y1="48.26" x2="-15.24" y2="55.88" width="0.1524" layer="91"/>
+<junction x="-15.24" y="55.88"/>
 </segment>
 </net>
 <net name="N$13" class="0">
@@ -4449,6 +4450,10 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 </nets>
 </sheet>
 </sheets>
+<errors>
+<approved hash="110,1,-17.78,50.8,N$11,GND,,,,"/>
+<approved hash="111,1,-17.78,50.8,N$11,,,,,"/>
+</errors>
 </schematic>
 </drawing>
 <compatibility>
