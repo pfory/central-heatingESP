@@ -213,9 +213,21 @@ void setup(void) {
   pinMode(ONE_WIRE_BUS_UT, INPUT);
 
   pinMode(RELAYPIN, OUTPUT);
+  digitalWrite(RELAYPIN, HIGH);
+  delay(3000);
+  digitalWrite(RELAYPIN, LOW);
   pinMode(LED1PIN, OUTPUT);
+  digitalWrite(LED1PIN, HIGH);
+  delay(3000);
+  digitalWrite(LED1PIN, LOW);
   pinMode(BUILTIN_LED, OUTPUT);
+  digitalWrite(BUILTIN_LED, LOW);
+  delay(3000);
+  digitalWrite(BUILTIN_LED, HIGH);
   pinMode(BUZZERPIN, OUTPUT);
+  digitalWrite(BUZZERPIN, HIGH);
+  delay(3000);
+  digitalWrite(BUZZERPIN, LOW);
   pinMode(PIRPIN, INPUT);
   digitalWrite(RELAYPIN, LOW);
 

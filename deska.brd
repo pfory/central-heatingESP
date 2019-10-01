@@ -1798,6 +1798,9 @@ design rules under a new name.</description>
 <contactref element="R6" pad="2"/>
 <wire x1="34.29" y1="31.75" x2="90.17" y2="63.5" width="0" layer="19" extent="1-1"/>
 </signal>
+<signal name="BUILTINLED">
+<contactref element="WEMOS1" pad="D4"/>
+</signal>
 </signals>
 <mfgpreviewcolors>
 <mfgpreviewcolor name="soldermaskcolor" color="0xC8008000"/>

@@ -4369,6 +4369,13 @@ ESP8266 module</description>
 <wire x1="88.9" y1="35.56" x2="88.9" y2="50.8" width="0.1524" layer="91"/>
 </segment>
 </net>
+<net name="BUILTINLED" class="0">
+<segment>
+<pinref part="WEMOS1" gate="D1" pin="D4"/>
+<wire x1="81.28" y1="58.42" x2="86.36" y2="58.42" width="0.1524" layer="91"/>
+<label x="86.36" y="58.42" size="1.778" layer="95"/>
+</segment>
+</net>
 </nets>
 </sheet>
 </sheets>
