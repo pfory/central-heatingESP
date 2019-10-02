@@ -65,9 +65,9 @@ struct StoreStruct {
   float           tempOFFDiff;
   float           tempAlarm;
 } storage = {
-  70,
+  45,
   5,
-  95
+  90
 };
 
 #include <LiquidCrystal_I2C.h>
@@ -126,7 +126,6 @@ void tick()
   //toggle state
   int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
   digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
-  digitalWrite(LED1PIN, state);     // set pin to the opposite state
 }
 
 //gets called when WiFiManager enters configuration mode
@@ -211,10 +210,6 @@ void setup(void) {
   digitalWrite(RELAYPIN, HIGH);
   delay(3000);
   digitalWrite(RELAYPIN, LOW);
-  pinMode(LED1PIN, OUTPUT);
-  digitalWrite(LED1PIN, HIGH);
-  delay(3000);
-  digitalWrite(LED1PIN, LOW);
   pinMode(BUILTIN_LED, OUTPUT);
   digitalWrite(BUILTIN_LED, LOW);
   delay(3000);
@@ -224,7 +219,6 @@ void setup(void) {
   delay(3000);
   digitalWrite(BUZZERPIN, LOW);
   pinMode(PIRPIN, INPUT);
-  digitalWrite(RELAYPIN, LOW);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
   uint8_t _reset_reason = _reset_info->reason;
@@ -455,7 +449,9 @@ void setup(void) {
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
-  digitalWrite(LED1PIN, LOW);
+  
+  pinMode(PIRPIN, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
   
   DEBUG_PRINTLN(F("Setup end."));
 }
@@ -467,11 +463,6 @@ void loop(void) {
   ArduinoOTA.handle();
 #endif
 
-  if (digitalRead(PIRPIN)==1) {
-    lcd.backlight();
-  } else {
-    lcd.noBacklight();
-  }
   if (!client.connected()) {
     reconnect();
   }
@@ -534,13 +525,11 @@ void changeRelay(byte status) {
 }
 
 void sendRelayHA(byte akce) {
-  digitalWrite(LED1PIN, LOW);
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
 }
 
@@ -751,7 +740,6 @@ void printTemp() {
 }
 
 bool sendDataHA(void *) {
-  digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
@@ -774,13 +762,11 @@ bool sendDataHA(void *) {
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
-  digitalWrite(LED1PIN, LOW);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
 bool sendStatisticHA(void *) {
-  digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
@@ -793,7 +779,6 @@ bool sendStatisticHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(LED1PIN, LOW);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
@@ -1231,5 +1216,15 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
   if (des>0) {
     lcd.print(F("."));
     lcd.print(abs((int)(value*(10*des))%(10*des)));
+  }
+}
+
+void PIREvent() {
+  if (digitalRead(PIRPIN)==1) {
+    DEBUG_PRINTLN("DISPLAY_ON");
+    lcd.backlight();
+  } else {
+    DEBUG_PRINTLN("DISPLAY OFF");
+    lcd.noBacklight();
   }
 }

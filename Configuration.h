@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.93"
+#define     VERSION                      "0.94"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -91,13 +91,13 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define RELAY_STATUSY                       3
 
 
-#define LED1PIN                             D8 //status LED
-#define ONE_WIRE_BUS_IN                     D5
-#define ONE_WIRE_BUS_OUT                    D0
+#define STATUS_LED                          BUILTIN_LED //status LED
+#define ONE_WIRE_BUS_IN                     D7
+#define ONE_WIRE_BUS_OUT                    D5
 #define ONE_WIRE_BUS_UT                     D6
 #define RELAYPIN                            D3 //relay
-#define BUZZERPIN                           D7
-#define PIRPIN                              D0
+#define BUZZERPIN                           D0
+#define PIRPIN                              D8
 //SDA                                       D2
 //SCL                                       D1
 //BUILTIN_LED                               D4
@@ -109,7 +109,6 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 
-//#define READTEMP_DELAY                       1000
 
 //#define IN                                  0
 //#define OUT                                 1
@@ -141,8 +140,7 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
 //#define SHOW_INFO_DELAY                      5000  //
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
-#define MEAS_DELAY                           5000  //mereni teplot
-//#define CALC_DELAY                           1000  //
+#define MEAS_DELAY                           15000  //mereni teplot
 
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
