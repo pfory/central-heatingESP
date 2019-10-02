@@ -152,7 +152,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   DEBUG_PRINTLN();
   
-  if (strcmp(topic, "/home/Corridor/esp07/manualRelay")==0) {
+  if (strcmp(topic, topicRelay)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set manual control relay to ");
     manualRelay = val.toInt();
@@ -161,7 +161,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       DEBUG_PRINTLN(F("OFF"));
     }
-  } else if (strcmp(topic, "/home/Corridor/esp07/restart")==0) {
+  } else if (strcmp(topic, topicRestart)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
@@ -207,17 +207,17 @@ void setup(void) {
   pinMode(ONE_WIRE_BUS_UT, INPUT);
 
   pinMode(RELAYPIN, OUTPUT);
-  digitalWrite(RELAYPIN, HIGH);
-  delay(3000);
-  digitalWrite(RELAYPIN, LOW);
+  digitalWrite(RELAYPIN, relayStatus);
+  // delay(3000);
+  // digitalWrite(RELAYPIN, LOW);
   pinMode(BUILTIN_LED, OUTPUT);
-  digitalWrite(BUILTIN_LED, LOW);
-  delay(3000);
-  digitalWrite(BUILTIN_LED, HIGH);
+  // digitalWrite(BUILTIN_LED, LOW);
+  // delay(3000);
+  // digitalWrite(BUILTIN_LED, HIGH);
   pinMode(BUZZERPIN, OUTPUT);
-  digitalWrite(BUZZERPIN, HIGH);
-  delay(3000);
-  digitalWrite(BUZZERPIN, LOW);
+  // digitalWrite(BUZZERPIN, HIGH);
+  // delay(3000);
+  // digitalWrite(BUZZERPIN, LOW);
   pinMode(PIRPIN, INPUT);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
@@ -1183,9 +1183,9 @@ void reconnect() {
       //client.publish("outTopic","hello world");
       // ... and resubscribe
       //client.subscribe(mqtt_base + '/' + 'inTopic');
-      //client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
-      //client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
-      //client.subscribe(mqtt_topic_weather);
+      client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+      client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
       DEBUG_PRINT(client.state());

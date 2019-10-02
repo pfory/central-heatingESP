@@ -106,9 +106,11 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define NUMBER_OF_DEVICES                    12
 #endif
 
-#define RELAY_ON                             HIGH
-#define RELAY_OFF                            LOW
+#define RELAY_ON                             LOW
+#define RELAY_OFF                            HIGH
 
+char*  topicRelay = "/home/Corridor/esp08/manualRelay";
+char*  topicRestart = "/home/Corridor/esp08/restart";
 
 //#define IN                                  0
 //#define OUT                                 1
