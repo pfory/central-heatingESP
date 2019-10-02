@@ -20,20 +20,15 @@ DallasTemperature sensorsUT(&oneWireUT);
 DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[15];
 
-//const unsigned long   measTime                   = 750; //in ms
-///bool                  startConversion            = false;
-//unsigned long         startConversionMillis      = 0;
 float                 tempOUT                    = 0.f;
 float                 tempIN                     = 0.f;
 float                 tempUT[12];             
-//bool                  relay                      = HIGH;
 const unsigned long   pumpProtect                = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
 const unsigned long   pumpProtectRun             = 300000;     //1000*60*5;     //in ms = 5 min
 bool                  firstMeasComplete          = false;
 bool                  tempRefresh                = false;
 uint32_t              heartBeat                  = 0;
 float                 temp[15];
-int                   pumpStatus                 = 0;
 
 byte relayStatus                                 = RELAY_OFF;
 byte manualRelay                                 = 2;
@@ -377,7 +372,6 @@ void setup(void) {
       lcd.print(F("!!!DS18B20 found!!!!"));
       lcd.setCursor(0, 3);
       lcd.print(F("!!!!!Check wire!!!!!"));
-      displayTime();
       //break;
       } else {
       break;
@@ -535,7 +529,6 @@ void relay() {
   dispRelayStatus();
 }
 
-
 void changeRelay(byte status) {
   digitalWrite(RELAYPIN, status);
 }
@@ -675,25 +668,6 @@ void getTemp() {
   firstMeasComplete=true;
 }
 
-// void tempSetup() {
-  // MQTT_connect();
-  // Adafruit_MQTT_Subscribe *subscription;
-  // while ((subscription = mqtt.readSubscription(5000))) {
-    // if (subscription == &tONSetup) {
-      // char *pNew = (char *)tONSetup.lastread;
-      // uint32_t pPassw=atol(pNew); 
-      // DEBUG_PRINT(F("Set ON temperature!"));
-      // //storage.tempON = tONSetup;
-    // }
-    // if (subscription == &tDiffSetup) {
-      // char *pNew = (char *)tDiffSetup.lastread;
-      // uint32_t pPassw=atol(pNew); 
-      // DEBUG_PRINT(F("Set temperature diference!"));
-      // //storage.tempOFFDiff = tDiffSetup;
-    // }
-  // }
-// }
-
 void printTemp() {
   DEBUG_PRINT(F("Temp IN: "));
   DEBUG_PRINT(tempIN); 
@@ -784,7 +758,7 @@ bool sendDataHA(void *) {
 
   sender.add("tINKamna",        tempIN);
   sender.add("tOUTKamna",       tempOUT);
-  sender.add("sPumpKamna",      pumpStatus);
+  sender.add("sPumpKamna",      relayStatus);
   sender.add("t0",              tempUT[0]);
   sender.add("t1",              tempUT[1]);
   sender.add("t2",              tempUT[2]);
@@ -838,7 +812,6 @@ bool sendStatisticHA(void *) {
 */
 
 void displayTemp() {
-  displayTime();
   if (!tempRefresh) {
     return;
   }
@@ -931,19 +904,6 @@ void print2digits(int number) {
     Serial.write('0');
   }
   DEBUG_PRINT(number);
-}
-
-void displayTime() {
-  lcd.setCursor(12, 0); //col,row
-  // if (RTC.read(tm)) {
-    // lcd2digits(tm.Hour);
-    // lcd.write(':');
-    // lcd2digits(tm.Minute);
-    // lcd.write(':');
-    // lcd2digits(tm.Second);
-  // } else {
-    // lcd.write('        ');
-  // }
 }
 
 //zabranuje zatuhnuti cerpadla v lete
@@ -1094,61 +1054,11 @@ void controlRange(uint8_t *pTime, uint8_t min, uint8_t max) {
   
 }
 
-// void setClock(byte typ) {
-  // if (typ==60) { //hour
-    // showHelpKey1();
-    // lcd.print(F("Hour:"));
-    // if (displayVarSub=='*') {
-      // tm.Hour++;
-      // controlRange(&tm.Hour, 0, 23);
-    // } else if (displayVarSub=='#') {
-      // tm.Hour--;
-      // controlRange(&tm.Hour, 0, 23);
-    // } else if (displayVarSub=='D') {
-      // displayVar=61;
-    // }
-    // displayVarSub=' ';
-  // } else if (typ==61) { //min
-    // showHelpKey1();
-    // lcd.print(F("Min:"));
-    // if (displayVarSub=='*') {
-      // tm.Minute++;
-      // controlRange(&tm.Minute, 0, 59);
-    // } else if (displayVarSub=='#') {
-      // tm.Minute--;
-      // controlRange(&tm.Minute, 0, 59);
-    // } else if (displayVarSub=='D') {
-      // displayVar=62;
-    // }
-    // displayVarSub=' ';
-  // } else if (typ==62) { //sec
-    // showHelpKey();
-    // lcd.print(F("Sec:"));
-    // if (displayVarSub=='*') {
-      // tm.Second++;
-      // controlRange(&tm.Second, 0, 59);
-    // } else if (displayVarSub=='#') {
-      // tm.Second--;
-      // controlRange(&tm.Second, 0, 59);
-    // } else if (displayVarSub=='D') {
-      // RTC.write(tm);
-      // displayVar=1;
-    // }
-    // lcd2digits(tm.Hour);
-    // lcd.write(':');
-    // lcd2digits(tm.Minute);
-    // lcd.write(':');
-    // lcd2digits(tm.Second);
-    // displayVarSub=' ';
-  // }
-// }
 
 void loadConfig() {
-  
 }
 
 void saveConfig() {
-  
 }
 
 void showHelpKey() {
@@ -1180,27 +1090,6 @@ void printAddress(DeviceAddress deviceAddress)
     if (deviceAddress[i] < 16) DEBUG_PRINT("0");
     DEBUG_PRINTHEX(deviceAddress[i]);
   }
-}
-
-void printSystemTime(){
-  DEBUG_PRINT(day());
-  DEBUG_PRINT(".");
-  DEBUG_PRINT(month());
-  DEBUG_PRINT(".");
-  DEBUG_PRINT(year());
-  DEBUG_PRINT(" ");
-  DEBUG_PRINT(hour());
-  printDigits(minute());
-  printDigits(second());
-}
-
-void printDigits(int digits){
-  // utility function for digital clock display: prints preceding
-  // colon and leading 0
-  DEBUG_PRINT(":");
-  if(digits < 10)
-    DEBUG_PRINT('0');
-  DEBUG_PRINT(digits);
 }
 
 #ifdef time
@@ -1256,6 +1145,12 @@ time_t getNtpTime()
   return 0; // return 0 if unable to get the time
 }
 
+void printSystemTime(){
+  char buffer[20];
+  sprintf(buffer, "%02d.%02d.%4d %02d:%02d:%02d", day(), month(), year(), hour(), minute(), second());
+  DEBUG_PRINT(buffer);
+}
+
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
   char buffer[6];
@@ -1267,8 +1162,6 @@ bool displayTime(void *) {
   lcd.print(buffer);
   return true;
 }
-#endif
-
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress &address)
@@ -1292,6 +1185,7 @@ void sendNTPpacket(IPAddress &address)
   EthernetUdp.write(packetBuffer, NTP_PACKET_SIZE);
   EthernetUdp.endPacket();
 }
+#endif
 
 void reconnect() {
   // Loop until we're reconnected
