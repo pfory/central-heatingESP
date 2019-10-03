@@ -111,8 +111,8 @@ byte colPins[COLS] = {3,2,1,0}; //connect to the column pinouts of the keypad
 Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR); 
 // #endif
 
-byte displayVar=1;
-char displayVarSub=' ';
+byte displayVar       = 1;
+char displayVarSub    = ' ';
 
 //for LED status
 #include <Ticker.h>
@@ -168,28 +168,39 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
-      DEBUG_PRINT("Temperature from Meteo: ");
-      DEBUG_PRINTLN(val.toFloat());
-      displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
-      lcd.write(byte(0));
-      lcd.print("C");
+    DEBUG_PRINT("Temperature from Meteo: ");
+    DEBUG_PRINTLN(val.toFloat());
+    displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
+    lcd.write(byte(0));
+    lcd.print("C");
   } else if (strcmp(topic, mqtt_topic_setTempON)==0) {
-      DEBUG_PRINT("Set temperature for ON: ");
-      DEBUG_PRINTLN(val.toInt());
-      storage.tempON = val.toInt();
-      saveConfig();
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("Set temperature for ON: ");
+    DEBUG_PRINTLN(val.toInt());
+    storage.tempON = val.toInt();
+    saveConfig();
   } else if (strcmp(topic, mqtt_topic_setTempOFFDiff)==0) {
-      DEBUG_PRINT("Set temperature diff for OFF: ");
-      DEBUG_PRINTLN(val.toInt());
-      storage.tempOFFDiff = val.toInt();
-      saveConfig();
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("Set temperature diff for OFF: ");
+    DEBUG_PRINTLN(val.toInt());
+    storage.tempOFFDiff = val.toInt();
+    saveConfig();
   } else if (strcmp(topic, mqtt_topic_setTempAlarm)==0) {
-      DEBUG_PRINT("Set alerm temperature: ");
-      DEBUG_PRINTLN(val.toInt());
-      storage.tempAlarm = val.toInt();
-      saveConfig();
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("Set alerm temperature: ");
+    DEBUG_PRINTLN(val.toInt());
+    storage.tempAlarm = val.toInt();
+    saveConfig();
   }
 
+}
+
+bool isDebugEnabled()
+{
+#ifdef verbose
+  return true;
+#endif // verbose
+  return false;
 }
 
 void printMessageToLCD(char* t, String v) {
@@ -260,21 +271,12 @@ void setup(void) {
   
   //filesystem
   SPIFFS.begin();
-  File f = SPIFFS.open("/config.txt", "r");
-  if (!f) {
-    DEBUG_PRINTLN("Config file open failed, used default values");
-  } else {
-    char buffer[64];
-    DEBUG_PRINTLN("---- config.txt -----");
-    while (f.available()) {
-      int l = f.readBytesUntil('\n', buffer, sizeof(buffer));
-      buffer[l] = 0;
-      DEBUG_PRINTLN(buffer);
-   }
-    DEBUG_PRINTLN("---- config.txt -----");
-    f.close();
-  }
-
+  FSInfo fs_info;
+  SPIFFS.info(fs_info);
+  printf("SPIFFS: %lu of %lu bytes used.\n",
+         fs_info.usedBytes, fs_info.totalBytes);
+         
+         
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
@@ -310,6 +312,8 @@ void setup(void) {
 
 #ifdef time
   DEBUG_PRINTLN("Setup TIME");
+  lcd.setCursor(0,1);
+  lcd.print("Setup time...");
   EthernetUdp.begin(localPort);
   DEBUG_PRINT("Local port: ");
   DEBUG_PRINTLN(EthernetUdp.localPort());
@@ -371,7 +375,8 @@ void setup(void) {
   
   keypad.begin();
   
-  loadConfig();
+  readConfig();
+  
   DEBUG_PRINTLN();
   DEBUG_PRINT(F("Temp ON "));
   DEBUG_PRINTLN(storage.tempON);
@@ -427,6 +432,10 @@ void setup(void) {
   printAddress(inThermometer);
   DEBUG_PRINTLN();
   
+  lcd.setCursor(0,0);
+  lcd.print(F(SW_NAME));
+  lcd.print(F(" "));
+  lcd.print(F(VERSION));
   
   lcd.setCursor(0,1);
   lcd.print(F("Sen."));
@@ -505,6 +514,7 @@ void loop(void) {
   client.loop();
 
   relay();
+  display();
 
   Wire.beginTransmission(8);
   Wire.write((byte)tempOUT);
@@ -523,7 +533,6 @@ void loop(void) {
     peep.noDelay(100,40,9,255);
   } */
 
-  display();
 #ifdef beep  
   //peep.loop();
 #endif  
@@ -598,6 +607,7 @@ void dispRelayStatus() {
 bool readTemp(void *) {
   startMeas(); 
   getTemp();
+  tempRefresh = true;
   //printTemp();
   return true;
 }
@@ -835,15 +845,6 @@ bool sendStatisticHA(void *) {
 /*
   01234567890123456789
   --------------------
-0|20/35           
-1|xx/xx  xx/xx  xx/xx
-2|xx/xx  xx/xx  xx/xx
-3|18:20 -10°CE      ON
-  --------------------
-  01234567890123456789
-  
-  01234567890123456789
-  --------------------
 0|56/66 CER      40/45
 1|                    
 2|                    
@@ -853,6 +854,21 @@ bool sendStatisticHA(void *) {
   
   
 */
+void display() {
+  if (displayVar==1) {
+    displayTemp();
+  } else if (displayVar==2) {
+    displayInfo();
+  } else if (displayVar==3) {
+    setTempON();
+  } else if (displayVar==4) {
+    setTempDiff();
+  } else if (displayVar==5) {
+    setTempAlarm();
+  } else if (displayVar>=60 && displayVar<=62) {
+    //setClock(displayVar);
+  }
+}
 
 void displayTemp() {
   if (!tempRefresh) {
@@ -894,14 +910,6 @@ void displayTemp() {
     radka++;
   }
 */
-  
-  //pump status
-  lcd.setCursor(RELAY_STATUSX, RELAY_STATUSY);
-  if (relayStatus==RELAY_ON) {
-    lcd.print("   ");
-  }else{
-    lcd.print("CER");
-  }
   
   //statistics of pump run
   lcd.setCursor(RUNMINTODAY_X, RUNMINTODAY_Y);
@@ -1018,22 +1026,6 @@ void keyBoard() {
     D - 
     */
     key = ' ';
-  }
-}
-
-void display() {
-  if (displayVar==1) {
-    displayTemp();
-  } else if (displayVar==2) {
-    displayInfo();
-  } else if (displayVar==3) {
-    setTempON();
-  } else if (displayVar==4) {
-    setTempDiff();
-  } else if (displayVar==5) {
-    setTempAlarm();
-  } else if (displayVar>=60 && displayVar<=62) {
-    //setClock(displayVar);
   }
 }
 
@@ -1296,21 +1288,76 @@ void PIREvent() {
 }
 
 
-void saveConfig() {
-  File f = SPIFFS.open("/config.txt", "w");
-  if (!f) {
-    DEBUG_PRINTLN("Config file open failed");
-  }
-  DEBUG_PRINTLN("====== Writing to SPIFFS file =========");
-  f.print("tempON=");
-  f.print(storage.tempON);
-  f.println();
-  f.print("tempOFFDiff=");
-  f.print(storage.tempOFFDiff);
-  f.println();
-  f.print("tempAlarm=");
-  f.print(storage.tempAlarm);
-  f.println();
+bool saveConfig() {
+  DEBUG_PRINTLN(F("Saving config..."));
 
-  f.close();
+  // if SPIFFS is not usable
+  if (!SPIFFS.begin() || !SPIFFS.exists(CFGFILE) ||
+      !SPIFFS.open(CFGFILE, "w"))
+  {
+    DEBUG_PRINTLN(F("Need to format SPIFFS: "));
+    SPIFFS.end();
+    SPIFFS.begin();
+    DEBUG_PRINTLN(SPIFFS.format());
+  }
+
+  StaticJsonDocument<1024> doc;
+
+  doc["tempON"]         = storage.tempON;
+  doc["tempOFFDiff"]    = storage.tempOFFDiff;
+  doc["tempAlarm"]      = storage.tempAlarm;
+
+  File configFile = SPIFFS.open(CFGFILE, "w+");
+  if (!configFile) {
+    DEBUG_PRINTLN(F("Failed to open config file for writing"));
+    SPIFFS.end();
+    return false;
+  } else {
+    if (isDebugEnabled) {
+      serializeJson(doc, Serial);
+    }
+    serializeJson(doc, configFile);
+    configFile.close();
+    SPIFFS.end();
+    DEBUG_PRINTLN(F("\nSaved successfully"));
+    return true;
+  }
+}
+
+bool readConfig() {
+  DEBUG_PRINTLN();
+  DEBUG_PRINT(F("Mounting FS..."));
+  if (SPIFFS.begin()) {
+    DEBUG_PRINTLN(F(" mounted!"));
+    if (SPIFFS.exists(CFGFILE)) {
+      // file exists, reading and loading
+      DEBUG_PRINTLN(F("Reading config file"));
+      File configFile = SPIFFS.open(CFGFILE, "r");
+      if (configFile) {
+        DEBUG_PRINTLN(F("Opened config file"));
+
+        char json[500];
+        while (configFile.available()) {
+         int l = configFile.readBytesUntil('\n', json, sizeof(json));
+         json[l] = 0;
+         DEBUG_PRINTLN(json);
+        }
+        
+        DynamicJsonDocument doc(1024);
+        deserializeJson(doc, json);
+
+        storage.tempON        = doc["tempON"];
+        storage.tempOFFDiff   = doc["tempOFFDiff"];
+        storage.tempAlarm     = doc["tempAlarm"];
+
+        return true;
+      }
+      DEBUG_PRINTLN(F("ERROR: unable to open config file"));
+    } else {
+      DEBUG_PRINTLN(F("ERROR: config file not exist"));
+    }
+  } else {
+    DEBUG_PRINTLN(F(" ERROR: failed to mount FS!"));
+  }
+  return false;
 }

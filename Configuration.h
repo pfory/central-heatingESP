@@ -124,7 +124,7 @@ char*  topicRestart                         = "/home/Corridor/esp08/restart";
 #define RELAY_STATUSX                       6
 #define RELAY_STATUSY                       0
 #define RUNMINTODAY_X                      15 
-#define RUNMINTODAY_Y                       2
+#define RUNMINTODAY_Y                       3
 #define TEMPERATURE_X                       4
 #define TEMPERATURE_Y                       3
 
@@ -147,4 +147,7 @@ char*  topicRestart                         = "/home/Corridor/esp08/restart";
 #define MEAS_DELAY                          5000  //mereni teplot
                                      
 #define TEMP_ERR                            -127
+
+#define CFGFILE                             "/config.txt"
+
 #endif
