@@ -1,0 +1,3 @@
+tempON=45
+tempOFFDiff=5
+tempAlarm=90

@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.94"
+#define     VERSION                      "0.95  "
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -47,7 +47,7 @@ keyboard
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
+#include "FS.h"
 
 #define verbose
 #ifdef verbose
@@ -74,11 +74,14 @@ char         static_ip[16]                  = "192.168.1.139";
 char         static_gw[16]                  = "192.168.1.1";
 char         static_sn[16]                  = "255.255.255.0";
 char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
+char         mqtt_topic_setTempON[29]       = "/home/Corridor/esp08/tempON";
+char         mqtt_topic_setTempOFFDiff[34]  = "/home/Corridor/esp08/tempOFFDiff";
+char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
 
-
+#define MIN_UNIT                            "m"
 
 //keypad i2c address
-#define I2CADDR                              0x20
+#define I2CADDR                             0x20
 
 //display
 #define LCDADDRESS                          0x27
@@ -90,65 +93,58 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
 
-
+//All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
 #define STATUS_LED                          BUILTIN_LED //status LED
-#define ONE_WIRE_BUS_IN                     D7
-#define ONE_WIRE_BUS_OUT                    D5
-#define ONE_WIRE_BUS_UT                     D6
-#define RELAYPIN                            D3 //relay
-#define BUZZERPIN                           D0
-#define PIRPIN                              D8
-//SDA                                       D2
-//SCL                                       D1
-//BUILTIN_LED                               D4
+#define ONE_WIRE_BUS_IN                     D7 //MOSI                       GPIO13
+#define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
+#define ONE_WIRE_BUS_UT                     D6 //MISO                       GPIO12
+#define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
+#define BUZZERPIN                           D0 //                           GPIO16
+#define PIRPIN                              D8 //10k Pull-down, SS          GPIO15
+//SDA                                       D2 //                           GPIO4
+//SCL                                       D1 //                           GPIO5
+//BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO2
 
 #ifndef NUMBER_OF_DEVICES
-#define NUMBER_OF_DEVICES                    12
+#define NUMBER_OF_DEVICES                   12
 #endif
 
-#define RELAY_ON                             LOW
-#define RELAY_OFF                            HIGH
+#define RELAY_ON                            LOW
+#define RELAY_OFF                           HIGH
 
-char*  topicRelay = "/home/Corridor/esp08/manualRelay";
-char*  topicRestart = "/home/Corridor/esp08/restart";
-
-//#define IN                                  0
-//#define OUT                                 1
-//#define RELAY                               100
-//#define RELAYTEMP                           101
+char*  topicRelay                           = "/home/Corridor/esp08/manualRelay";
+char*  topicRestart                         = "/home/Corridor/esp08/restart";
 
 #define TEMPERATURE_PRECISION 12
 
-// #define POZ0X                                0
-// #define POZ0Y                                0
-// #define POZ1Y                                1
-// #define TIMEX                                0
-// #define TIMEY                                3
+#define TEMPINOUTX                          0
+#define TEMPINOUTY                          0
+#define TEMPSETX                            15
+#define TEMPSETY                            0
+#define RELAY_STATUSX                       6
+#define RELAY_STATUSY                       0
+#define RUNMINTODAY_X                      15 
+#define RUNMINTODAY_Y                       2
+#define TEMPERATURE_X                       4
+#define TEMPERATURE_Y                       3
 
 // #define DISPLAY_MAIN                         0
 // #define DISPLAY_T_DIFF_ON                    2
 // #define DISPLAY_T_DIFF_OFF                   3
 // #define DISPLAY_MAX_IO_TEMP                  5
-
-// #define RELAY1X                              19
-// #define RELAY1Y                              0
-
-
-//#define DS_MEASSURE_INTERVAL                 750 //inteval between meassurements
-//#define DELAY_AFTER_ON                       120000 //1000*60*2; //po tento cas zustane rele sepnute bez ohledu na stav teplotnich cidel
-  
-#define SAFETY_ON                            86.0 //teplota, pri niz rele vzdy sepne
-  
-#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
-//#define SHOW_INFO_DELAY                      5000  //
-#define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
-#define MEAS_DELAY                           15000  //mereni teplot
-
-
-#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
-#define SHOW_INFO_DELAY                      5000  //
-#define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
-#define MEAS_DELAY                           5000  //mereni teplot
-
-#define TEMP_ERR                             -127
+ 
+#define SAFETY_ON                           86.0 //teplota, pri niz rele vzdy sepne
+                                     
+#define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
+//#define SHOW_INFO_DELAY                     5000  //
+#define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
+#define MEAS_DELAY                          15000  //mereni teplot
+                                     
+                                     
+#define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
+#define SHOW_INFO_DELAY                     5000  //
+#define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
+#define MEAS_DELAY                          5000  //mereni teplot
+                                     
+#define TEMP_ERR                            -127
 #endif

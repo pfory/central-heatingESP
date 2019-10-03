@@ -6196,6 +6196,8 @@ Source: www.kingbright.com</description>
 <part name="+3V5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="X7" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-03-PIN" device="-LONG-PAD"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
+<part name="RESET" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
+<part name="GND7" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -6401,6 +6403,16 @@ Source: www.kingbright.com</description>
 <instance part="GND3" gate="1" x="53.34" y="15.24" smashed="yes">
 <attribute name="VALUE" x="50.8" y="12.7" size="1.778" layer="96"/>
 </instance>
+<instance part="RESET" gate="-2" x="43.18" y="78.74" smashed="yes" rot="R90">
+<attribute name="NAME" x="43.942" y="81.28" size="1.524" layer="95" rot="R90"/>
+</instance>
+<instance part="RESET" gate="-1" x="40.64" y="78.74" smashed="yes" rot="R90">
+<attribute name="NAME" x="41.402" y="81.28" size="1.524" layer="95" rot="R90"/>
+<attribute name="VALUE" x="39.243" y="77.978" size="1.778" layer="96" rot="R90"/>
+</instance>
+<instance part="GND7" gate="1" x="43.18" y="73.66" smashed="yes">
+<attribute name="VALUE" x="40.64" y="71.12" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -6478,6 +6490,10 @@ Source: www.kingbright.com</description>
 <pinref part="X7" gate="-1" pin="S"/>
 <pinref part="GND3" gate="1" pin="GND"/>
 <wire x1="45.72" y1="17.78" x2="53.34" y2="17.78" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="RESET" gate="-2" pin="S"/>
+<pinref part="GND7" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -6713,6 +6729,14 @@ Source: www.kingbright.com</description>
 <wire x1="48.26" y1="55.88" x2="40.64" y2="55.88" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="17.78" x2="40.64" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="X7" gate="-3" pin="S"/>
+</segment>
+</net>
+<net name="N$5" class="0">
+<segment>
+<pinref part="RESET" gate="-1" pin="S"/>
+<wire x1="40.64" y1="76.2" x2="40.64" y2="71.12" width="0.1524" layer="91"/>
+<pinref part="WEMOS1" gate="D1" pin="RESET"/>
+<wire x1="40.64" y1="71.12" x2="48.26" y2="71.12" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
