@@ -201,6 +201,7 @@ void setup(void) {
   lcd.print(SW_NAME);
   PRINT_SPACE
   lcd.print(VERSION);
+  lcd.createChar(0, customChar);
 
   pinMode(ONE_WIRE_BUS_IN, INPUT);
   pinMode(ONE_WIRE_BUS_OUT, INPUT);
@@ -427,12 +428,12 @@ void setup(void) {
   lcd.print(sensorsUT.getDeviceCount());
   lcd.print(F(" bus UT"));
   
-  delay(1000);
+  delay(3000);
   lcd.clear();
   
   displayInfo();
 
-  delay(1000);
+  delay(3000);
   lcd.clear();
 
   //setup timers
@@ -536,13 +537,13 @@ void sendRelayHA(byte akce) {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (relayStatus==1) {
+  if (relayStatus==RELAY_ON) {
     lcd.print(" ON");
-  } else if (relayStatus==0) {
+  } else if (relayStatus==RELAY_OFF) {
     lcd.print("OFF");
-  } else if (manualRelay==1) {
+  } else if (manualRelay==RELAY_ON) {
     lcd.print("MON");
-  } else if (manualRelay==0) {
+  } else if (manualRelay==RELAY_OFF) {
     lcd.print("MOF");
   }
 }
@@ -788,10 +789,10 @@ bool sendStatisticHA(void *) {
 /*
   01234567890123456789
   --------------------
-0|xx/xx       15:30:45
+0|20/35           
 1|xx/xx  xx/xx  xx/xx
 2|xx/xx  xx/xx  xx/xx
-3|xx/xx  xx/xx  xx/xx
+3|18:20 -10°CE      ON
   --------------------
   01234567890123456789
 */
@@ -1145,6 +1146,7 @@ bool displayTime(void *) {
     sprintf(buffer, "%02d %02d", hour(), minute());
   }
   lcd.print(buffer);
+  showDoubleDot = !showDoubleDot;
   return true;
 }
 
@@ -1207,7 +1209,7 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
   itoa (cela, cislo, 10);
   strcpy(format, "%");
   strcat(format, cislo);
-  strcat(format, "d\n");
+  strcat(format, "d");
 
   sprintf (buffer, format, (int)value); // send data to the buffer
   lcd.setCursor(x,y);
