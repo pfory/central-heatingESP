@@ -20,21 +20,23 @@ DallasTemperature sensorsUT(&oneWireUT);
 DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[15];
 
-float                 tempOUT                    = 0.f;
-float                 tempIN                     = 0.f;
-float                 tempUT[12];             
-const unsigned long   pumpProtect                = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
-const unsigned long   pumpProtectRun             = 300000;     //1000*60*5;     //in ms = 5 min
-bool                  firstMeasComplete          = false;
-bool                  tempRefresh                = false;
-uint32_t              heartBeat                  = 0;
-float                 temp[15];
+float                 tempOUT                     = 0.f;
+float                 tempIN                      = 0.f;
+float                 tempUT[12];              
+const unsigned long   pumpProtect                 = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
+const unsigned long   pumpProtectRun              = 300000;     //1000*60*5;     //in ms = 5 min
+bool                  firstMeasComplete           = false;
+bool                  tempRefresh                 = false;
+uint32_t              heartBeat                   = 0;
+float                 temp[15];              
+                                             
+byte relayStatus                                  = RELAY_OFF;
+byte manualRelay                                  = 2;
+                                             
+uint32_t              runMsToday                  = 0;
+uint32_t              lastMillis                  = 0;
 
-byte relayStatus                                 = RELAY_OFF;
-byte manualRelay                                 = 2;
-
-
-#define SIMTEMP
+//#define SIMTEMP
 
 #define time
 #ifdef time
@@ -171,6 +173,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
       displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
       lcd.write(byte(0));
       lcd.print("C");
+  } else if (strcmp(topic, mqtt_topic_setTempON)==0) {
+      DEBUG_PRINT("Set temperature for ON: ");
+      DEBUG_PRINTLN(val.toInt());
+      storage.tempON = val.toInt();
+      saveConfig();
+  } else if (strcmp(topic, mqtt_topic_setTempOFFDiff)==0) {
+      DEBUG_PRINT("Set temperature diff for OFF: ");
+      DEBUG_PRINTLN(val.toInt());
+      storage.tempOFFDiff = val.toInt();
+      saveConfig();
+  } else if (strcmp(topic, mqtt_topic_setTempAlarm)==0) {
+      DEBUG_PRINT("Set alerm temperature: ");
+      DEBUG_PRINTLN(val.toInt());
+      storage.tempAlarm = val.toInt();
+      saveConfig();
   }
 
 }
@@ -201,6 +218,7 @@ void setup(void) {
   lcd.print(SW_NAME);
   PRINT_SPACE
   lcd.print(VERSION);
+  lcd.createChar(0, customChar);
 
   pinMode(ONE_WIRE_BUS_IN, INPUT);
   pinMode(ONE_WIRE_BUS_OUT, INPUT);
@@ -239,6 +257,23 @@ void setup(void) {
   client.setCallback(callback);
 
   ticker.attach(1, tick);
+  
+  //filesystem
+  SPIFFS.begin();
+  File f = SPIFFS.open("/config.txt", "r");
+  if (!f) {
+    DEBUG_PRINTLN("Config file open failed, used default values");
+  } else {
+    char buffer[64];
+    DEBUG_PRINTLN("---- config.txt -----");
+    while (f.available()) {
+      int l = f.readBytesUntil('\n', buffer, sizeof(buffer));
+      buffer[l] = 0;
+      DEBUG_PRINTLN(buffer);
+   }
+    DEBUG_PRINTLN("---- config.txt -----");
+    f.close();
+  }
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -366,11 +401,12 @@ void setup(void) {
       lcd.print(F("!!!DS18B20 found!!!!"));
       lcd.setCursor(0, 3);
       lcd.print(F("!!!!!Check wire!!!!!"));
+      digitalWrite(RELAYPIN, RELAY_ON); //zapnu cerpadlo
       //break;
       } else {
       break;
     }
-    delay(800);
+    delay(2000);
   }
 
   sensorsOUT.setResolution(TEMPERATURE_PRECISION);
@@ -492,6 +528,17 @@ void loop(void) {
   //peep.loop();
 #endif  
   keyBoard();
+  
+  
+  //nulovani statistik o pulnoci
+  if (hour()==0 && runMsToday>0) {
+    runMsToday = 0;
+  }
+  
+  if (relayStatus==RELAY_ON) {
+    runMsToday += millis() - lastMillis;
+    lastMillis = millis();
+  }
   
   testPumpProtect();
 }
@@ -794,6 +841,17 @@ bool sendStatisticHA(void *) {
 3|xx/xx  xx/xx  xx/xx
   --------------------
   01234567890123456789
+  
+  01234567890123456789
+  --------------------
+0|56/66 CER      40/45
+1|                    
+2|                    
+3|19:20 15°C     1440m
+  --------------------
+  01234567890123456789  
+  
+  
 */
 
 void displayTemp() {
@@ -801,23 +859,27 @@ void displayTemp() {
     return;
   }
   tempRefresh=false;
-  lcd.setCursor(0, 0); //col,row
+  lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
   lcd.print(F("       "));
-  lcd.setCursor(0, 0); //col,row
+  lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
   if (tempIN==TEMP_ERR) {
     displayTempErr();
   }else {
-    addSpacesBefore((int)tempIN);
     lcd.print((int)tempIN);
   }
-  lcd.setCursor(2, 0); //col,row
   lcd.print(F("/"));
-  //addSpaces((int)tempOUT);
   if (tempOUT==TEMP_ERR) {
     displayTempErr();
   }else {
     lcd.print((int)tempOUT);
   }
+  
+  lcd.setCursor(TEMPSETX, TEMPSETY);
+  lcd.print(F("     "));
+  lcd.setCursor(TEMPSETX, TEMPSETY);
+  lcd.print((int)(storage.tempON - storage.tempOFFDiff));
+  lcd.print(F("/"));
+  lcd.print((int)storage.tempON);
   
 /*  byte radka=1;
   byte sensor=0;
@@ -832,12 +894,19 @@ void displayTemp() {
     radka++;
   }
 */
-  lcd.setCursor(8, 0);
-  if (relayStatus==HIGH) {
-    lcd.print("    ");
+  
+  //pump status
+  lcd.setCursor(RELAY_STATUSX, RELAY_STATUSY);
+  if (relayStatus==RELAY_ON) {
+    lcd.print("   ");
   }else{
     lcd.print("CER");
   }
+  
+  //statistics of pump run
+  lcd.setCursor(RUNMINTODAY_X, RUNMINTODAY_Y);
+  lcd.print((int)(runMsToday/1000/60));
+  lcd.print(MIN_UNIT);
 }
 
 void displayRadTemp(byte sl, byte rad, byte s) {
@@ -1039,11 +1108,7 @@ void controlRange(uint8_t *pTime, uint8_t min, uint8_t max) {
   
 }
 
-
 void loadConfig() {
-}
-
-void saveConfig() {
 }
 
 void showHelpKey() {
@@ -1180,11 +1245,11 @@ void reconnect() {
     if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
-      //client.publish("outTopic","hello world");
-      // ... and resubscribe
-      //client.subscribe(mqtt_base + '/' + 'inTopic');
       client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
       client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "tempON").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "tempOFFDiff").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "tempAlarm").c_str());
       client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
@@ -1227,4 +1292,24 @@ void PIREvent() {
     DEBUG_PRINTLN("DISPLAY OFF");
     lcd.noBacklight();
   }
+}
+
+
+void saveConfig() {
+  File f = SPIFFS.open("/config.txt", "w");
+  if (!f) {
+    DEBUG_PRINTLN("Config file open failed");
+  }
+  DEBUG_PRINTLN("====== Writing to SPIFFS file =========");
+  f.print("tempON=");
+  f.print(storage.tempON);
+  f.println();
+  f.print("tempOFFDiff=");
+  f.print(storage.tempOFFDiff);
+  f.println();
+  f.print("tempAlarm=");
+  f.print(storage.tempAlarm);
+  f.println();
+
+  f.close();
 }
