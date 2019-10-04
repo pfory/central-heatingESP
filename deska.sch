@@ -6150,6 +6150,67 @@ Source: www.kingbright.com</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="wirepad" urn="urn:adsk.eagle:library:412">
+<description>&lt;b&gt;Single Pads&lt;/b&gt;&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="2,15/1,0" urn="urn:adsk.eagle:footprint:30813/1" library_version="2">
+<description>&lt;b&gt;THROUGH-HOLE PAD&lt;/b&gt;</description>
+<wire x1="1.143" y1="-1.143" x2="1.143" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="-1.143" x2="0.635" y2="-1.143" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="0.635" x2="1.143" y2="1.143" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="1.143" x2="0.635" y2="1.143" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="1.143" x2="-1.143" y2="1.143" width="0.1524" layer="21"/>
+<wire x1="-1.143" y1="1.143" x2="-1.143" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-1.143" y1="-0.635" x2="-1.143" y2="-1.143" width="0.1524" layer="21"/>
+<wire x1="-1.143" y1="-1.143" x2="-0.635" y2="-1.143" width="0.1524" layer="21"/>
+<circle x="0" y="0" radius="1.016" width="0.1524" layer="51"/>
+<pad name="1" x="0" y="0" drill="1.016" diameter="2.159" shape="octagon"/>
+<text x="-1.143" y="1.397" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="0" y="1" size="0.0254" layer="27">&gt;VALUE</text>
+</package>
+</packages>
+<packages3d>
+<package3d name="2,15/1,0" urn="urn:adsk.eagle:package:30831/1" type="box" library_version="2">
+<description>THROUGH-HOLE PAD</description>
+<packageinstances>
+<packageinstance name="2,15/1,0"/>
+</packageinstances>
+</package3d>
+</packages3d>
+<symbols>
+<symbol name="PAD" urn="urn:adsk.eagle:symbol:30808/1" library_version="2">
+<wire x1="-1.016" y1="1.016" x2="1.016" y2="-1.016" width="0.254" layer="94"/>
+<wire x1="-1.016" y1="-1.016" x2="1.016" y2="1.016" width="0.254" layer="94"/>
+<text x="-1.143" y="1.8542" size="1.778" layer="95">&gt;NAME</text>
+<text x="-1.143" y="-3.302" size="1.778" layer="96">&gt;VALUE</text>
+<pin name="P" x="2.54" y="0" visible="off" length="short" direction="pas" rot="R180"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="2,15/1,0" urn="urn:adsk.eagle:component:30850/2" prefix="PAD" uservalue="yes" library_version="2">
+<description>&lt;b&gt;THROUGH-HOLE PAD&lt;/b&gt;</description>
+<gates>
+<gate name="1" symbol="PAD" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="2,15/1,0">
+<connects>
+<connect gate="1" pin="P" pad="1"/>
+</connects>
+<package3dinstances>
+<package3dinstance package3d_urn="urn:adsk.eagle:package:30831/1"/>
+</package3dinstances>
+<technologies>
+<technology name="">
+<attribute name="POPULARITY" value="11" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -6186,7 +6247,7 @@ Source: www.kingbright.com</description>
 <part name="X5" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-04-PIN" device="-LONG-PAD"/>
 <part name="X6" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-04-PIN" device="-LONG-PAD"/>
 <part name="RELAY" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-03-PIN" device="-LONG-PAD"/>
-<part name="LED1" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
+<part name="STATUS" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
 <part name="LEDRELAY" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
 <part name="BUZZER" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
@@ -6194,10 +6255,12 @@ Source: www.kingbright.com</description>
 <part name="LED2" library="led" library_urn="urn:adsk.eagle:library:259" deviceset="LED" device="3MM" package3d_urn="urn:adsk.eagle:package:15797/1" value="LED2"/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="+3V5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
-<part name="X7" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-03-PIN" device="-LONG-PAD"/>
+<part name="PIR" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-03-PIN" device="-LONG-PAD"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="RESET" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
+<part name="PAD1" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,15/1,0" device="" package3d_urn="urn:adsk.eagle:package:30831/1"/>
+<part name="PAD2" library="wirepad" library_urn="urn:adsk.eagle:library:412" deviceset="2,15/1,0" device="" package3d_urn="urn:adsk.eagle:package:30831/1"/>
 </parts>
 <sheets>
 <sheet>
@@ -6352,10 +6415,10 @@ Source: www.kingbright.com</description>
 <instance part="RELAY" gate="-3" x="-30.48" y="55.88" smashed="yes" rot="R180">
 <attribute name="NAME" x="-33.02" y="56.642" size="1.524" layer="95" rot="R180"/>
 </instance>
-<instance part="LED1" gate="-2" x="10.16" y="27.94" smashed="yes" rot="R270">
+<instance part="STATUS" gate="-2" x="10.16" y="27.94" smashed="yes" rot="R270">
 <attribute name="NAME" x="9.398" y="25.4" size="1.524" layer="95" rot="R270"/>
 </instance>
-<instance part="LED1" gate="-1" x="12.7" y="27.94" smashed="yes" rot="R270">
+<instance part="STATUS" gate="-1" x="12.7" y="27.94" smashed="yes" rot="R270">
 <attribute name="NAME" x="11.938" y="25.4" size="1.524" layer="95" rot="R270"/>
 <attribute name="VALUE" x="14.097" y="28.702" size="1.778" layer="96" rot="R270"/>
 </instance>
@@ -6387,17 +6450,15 @@ Source: www.kingbright.com</description>
 <instance part="GND2" gate="1" x="104.14" y="68.58" smashed="yes">
 <attribute name="VALUE" x="101.6" y="66.04" size="1.778" layer="96"/>
 </instance>
-<instance part="+3V5" gate="G$1" x="43.18" y="25.4" smashed="yes">
-<attribute name="VALUE" x="40.64" y="20.32" size="1.778" layer="96" rot="R90"/>
-</instance>
-<instance part="X7" gate="-1" x="45.72" y="15.24" smashed="yes" rot="R270">
+<instance part="+3V5" gate="G$1" x="40.64" y="25.4" smashed="yes"/>
+<instance part="PIR" gate="-1" x="45.72" y="15.24" smashed="yes" rot="R270">
 <attribute name="NAME" x="44.958" y="12.7" size="1.524" layer="95" rot="R270"/>
 <attribute name="VALUE" x="47.117" y="16.002" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="X7" gate="-2" x="43.18" y="15.24" smashed="yes" rot="R270">
+<instance part="PIR" gate="-2" x="43.18" y="15.24" smashed="yes" rot="R270">
 <attribute name="NAME" x="42.418" y="12.7" size="1.524" layer="95" rot="R270"/>
 </instance>
-<instance part="X7" gate="-3" x="40.64" y="15.24" smashed="yes" rot="R270">
+<instance part="PIR" gate="-3" x="40.64" y="15.24" smashed="yes" rot="R270">
 <attribute name="NAME" x="39.878" y="12.7" size="1.524" layer="95" rot="R270"/>
 </instance>
 <instance part="GND3" gate="1" x="53.34" y="15.24" smashed="yes">
@@ -6412,6 +6473,14 @@ Source: www.kingbright.com</description>
 </instance>
 <instance part="GND7" gate="1" x="43.18" y="73.66" smashed="yes">
 <attribute name="VALUE" x="40.64" y="71.12" size="1.778" layer="96"/>
+</instance>
+<instance part="PAD1" gate="1" x="55.88" y="17.78" smashed="yes" rot="R180">
+<attribute name="NAME" x="57.023" y="15.9258" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="57.023" y="21.082" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="PAD2" gate="1" x="53.34" y="25.4" smashed="yes" rot="R270">
+<attribute name="NAME" x="55.1942" y="26.543" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="50.038" y="26.543" size="1.778" layer="96" rot="R270"/>
 </instance>
 </instances>
 <busses>
@@ -6487,9 +6556,13 @@ Source: www.kingbright.com</description>
 <junction x="104.14" y="71.12"/>
 </segment>
 <segment>
-<pinref part="X7" gate="-1" pin="S"/>
 <pinref part="GND3" gate="1" pin="GND"/>
+<pinref part="PAD1" gate="1" pin="P"/>
+<pinref part="PIR" gate="-1" pin="S"/>
 <wire x1="45.72" y1="17.78" x2="53.34" y2="17.78" width="0.1524" layer="91"/>
+<junction x="53.34" y="17.78"/>
+<pinref part="PAD2" gate="1" pin="P"/>
+<wire x1="53.34" y1="22.86" x2="53.34" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="RESET" gate="-2" pin="S"/>
@@ -6500,7 +6573,7 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="R4" gate="G$1" pin="2"/>
 <wire x1="12.7" y1="38.1" x2="15.24" y2="38.1" width="0.1524" layer="91"/>
-<pinref part="LED1" gate="-1" pin="S"/>
+<pinref part="STATUS" gate="-1" pin="S"/>
 <wire x1="12.7" y1="30.48" x2="12.7" y2="38.1" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -6632,14 +6705,12 @@ Source: www.kingbright.com</description>
 </net>
 <net name="BUILTINLED" class="0">
 <segment>
-<pinref part="WEMOS1" gate="D1" pin="D4"/>
-<wire x1="81.28" y1="58.42" x2="86.36" y2="58.42" width="0.1524" layer="91"/>
 <label x="86.36" y="58.42" size="1.778" layer="95"/>
-<wire x1="86.36" y1="58.42" x2="86.36" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="27.94" y1="38.1" x2="25.4" y2="38.1" width="0.1524" layer="91"/>
 <pinref part="R4" gate="G$1" pin="1"/>
-<wire x1="86.36" y1="35.56" x2="27.94" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="27.94" y1="35.56" x2="27.94" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="25.4" y1="38.1" x2="40.64" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="40.64" y1="38.1" x2="40.64" y2="55.88" width="0.1524" layer="91"/>
+<pinref part="WEMOS1" gate="D1" pin="D8"/>
+<wire x1="40.64" y1="55.88" x2="48.26" y2="55.88" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+3V3" class="0">
@@ -6650,7 +6721,7 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="+3V2" gate="G$1" pin="+3V3"/>
 <wire x1="10.16" y1="38.1" x2="0" y2="38.1" width="0.1524" layer="91"/>
-<pinref part="LED1" gate="-2" pin="S"/>
+<pinref part="STATUS" gate="-2" pin="S"/>
 <wire x1="10.16" y1="38.1" x2="10.16" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 <segment>
@@ -6687,9 +6758,9 @@ Source: www.kingbright.com</description>
 <pinref part="X3" gate="-2" pin="S"/>
 </segment>
 <segment>
+<pinref part="PIR" gate="-3" pin="S"/>
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
-<wire x1="43.18" y1="22.86" x2="43.18" y2="17.78" width="0.1524" layer="91"/>
-<pinref part="X7" gate="-2" pin="S"/>
+<wire x1="40.64" y1="17.78" x2="40.64" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -6723,20 +6794,22 @@ Source: www.kingbright.com</description>
 <wire x1="45.72" y1="40.64" x2="116.84" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$3" class="0">
-<segment>
-<pinref part="WEMOS1" gate="D1" pin="D8"/>
-<wire x1="48.26" y1="55.88" x2="40.64" y2="55.88" width="0.1524" layer="91"/>
-<wire x1="40.64" y1="17.78" x2="40.64" y2="55.88" width="0.1524" layer="91"/>
-<pinref part="X7" gate="-3" pin="S"/>
-</segment>
-</net>
 <net name="N$5" class="0">
 <segment>
 <pinref part="RESET" gate="-1" pin="S"/>
 <wire x1="40.64" y1="76.2" x2="40.64" y2="71.12" width="0.1524" layer="91"/>
 <pinref part="WEMOS1" gate="D1" pin="RESET"/>
 <wire x1="40.64" y1="71.12" x2="48.26" y2="71.12" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$3" class="0">
+<segment>
+<wire x1="43.18" y1="33.02" x2="86.36" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="86.36" y1="33.02" x2="86.36" y2="58.42" width="0.1524" layer="91"/>
+<pinref part="WEMOS1" gate="D1" pin="D4"/>
+<wire x1="86.36" y1="58.42" x2="81.28" y2="58.42" width="0.1524" layer="91"/>
+<pinref part="PIR" gate="-2" pin="S"/>
+<wire x1="43.18" y1="17.78" x2="43.18" y2="33.02" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>

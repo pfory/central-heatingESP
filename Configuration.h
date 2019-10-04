@@ -104,6 +104,7 @@ char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
 //SDA                                       D2 //                           GPIO4
 //SCL                                       D1 //                           GPIO5
 #define PIRPIN                              D4 //10k Pull-up, BUILTIN_LED   GPIO2     H             H
+//PIRPIN v klidu L, pohyb H
 
 #ifndef NUMBER_OF_DEVICES
 #define NUMBER_OF_DEVICES                   12
