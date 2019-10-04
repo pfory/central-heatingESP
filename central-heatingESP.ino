@@ -126,8 +126,8 @@ Timer<> default_timer; // save as above
 void tick()
 {
   //toggle state
-  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
-  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+  int state = digitalRead(STATUS_LED);  // get the current state of GPIO1 pin
+  digitalWrite(STATUS_LED, !state);     // set pin to the opposite state
 }
 
 //gets called when WiFiManager enters configuration mode
@@ -239,10 +239,10 @@ void setup(void) {
   digitalWrite(RELAYPIN, relayStatus);
   // delay(3000);
   // digitalWrite(RELAYPIN, LOW);
-  pinMode(BUILTIN_LED, OUTPUT);
-  // digitalWrite(BUILTIN_LED, LOW);
+  pinMode(STATUS_LED, OUTPUT);
+  // digitalWrite(STATUS_LED, LOW);
   // delay(3000);
-  // digitalWrite(BUILTIN_LED, HIGH);
+  // digitalWrite(STATUS_LED, HIGH);
   pinMode(BUZZERPIN, OUTPUT);
   // digitalWrite(BUZZERPIN, HIGH);
   // delay(3000);
@@ -493,7 +493,7 @@ void setup(void) {
 
   ticker.detach();
   //keep LED on
-  digitalWrite(BUILTIN_LED, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   
   pinMode(PIRPIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
@@ -581,12 +581,12 @@ void changeRelay(byte status) {
 }
 
 void sendRelayHA(byte akce) {
-  digitalWrite(BUILTIN_LED, LOW);
+  digitalWrite(STATUS_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
 }
 
 
@@ -797,7 +797,7 @@ void printTemp() {
 }
 
 bool sendDataHA(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
+  digitalWrite(STATUS_LED, LOW);
   SenderClass sender;
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
 
@@ -819,12 +819,12 @@ bool sendDataHA(void *) {
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
-  digitalWrite(BUILTIN_LED, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   return true;
 }
 
 bool sendStatisticHA(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
+  digitalWrite(STATUS_LED, LOW);
   //printSystemTime();
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
 
@@ -836,7 +836,7 @@ bool sendStatisticHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   return true;
 }
 
