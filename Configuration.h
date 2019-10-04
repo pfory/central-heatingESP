@@ -88,11 +88,6 @@ char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
 #define LCDROWS                             4
 #define LCDCOLS                             20
 
-#define TEMPERATURE_X                       4
-#define TEMPERATURE_Y                       3
-#define RELAY_STATUSX                       17
-#define RELAY_STATUSY                       3
-
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
 //#define STATUS_LED                          BUILTIN_LED //status LED
 #define ONE_WIRE_BUS_IN                     D7 //MOSI                       GPIO13    normal BOOT   PROG
@@ -126,7 +121,7 @@ char*  topicRestart                         = "/home/Corridor/esp08/restart";
 #define RELAY_STATUSY                       0
 #define RUNMINTODAY_X                      15 
 #define RUNMINTODAY_Y                       3
-#define TEMPERATURE_X                       4
+#define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
 
 // #define DISPLAY_MAIN                         0

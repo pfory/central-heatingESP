@@ -495,8 +495,8 @@ void setup(void) {
   //keep LED on
   digitalWrite(STATUS_LED, HIGH);
   
-  pinMode(PIRPIN, INPUT);
-  attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
+  //pinMode(PIRPIN, INPUT);
+  //attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
   
   DEBUG_PRINTLN(F("Setup end."));
 }
@@ -550,6 +550,15 @@ void loop(void) {
   }
   
   testPumpProtect();
+  
+  if (digitalRead(PIRPIN)==1) {
+    //DEBUG_PRINTLN("DISPLAY_ON");
+    lcd.backlight();
+  } else {
+    //DEBUG_PRINTLN("DISPLAY OFF");
+    lcd.noBacklight();
+  }
+
 }
 
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
@@ -876,7 +885,7 @@ void displayTemp() {
   }
   tempRefresh=false;
   lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
-  lcd.print(F("       "));
+  lcd.print(F("     "));
   lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
   if (tempIN==TEMP_ERR) {
     displayTempErr();
@@ -1277,15 +1286,15 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
   }
 }
 
-void PIREvent() {
-  if (digitalRead(PIRPIN)==1) {
-    DEBUG_PRINTLN("DISPLAY_ON");
-    lcd.backlight();
-  } else {
-    DEBUG_PRINTLN("DISPLAY OFF");
-    lcd.noBacklight();
-  }
-}
+// void PIREvent() {
+  // if (digitalRead(PIRPIN)==1) {
+    // //DEBUG_PRINTLN("DISPLAY_ON");
+    // lcd.backlight();
+  // } else {
+    // //DEBUG_PRINTLN("DISPLAY OFF");
+    // lcd.noBacklight();
+  // }
+// }
 
 
 bool saveConfig() {
