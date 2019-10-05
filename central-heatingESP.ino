@@ -575,7 +575,8 @@ void relay() {
       lastMillis = millis();
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
-    } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
+    //} else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
+    } else if (relayStatus == RELAY_ON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       sendRelayHA(0);
