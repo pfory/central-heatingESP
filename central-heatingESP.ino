@@ -126,8 +126,8 @@ Timer<> default_timer; // save as above
 void tick()
 {
   //toggle state
-  int state = digitalRead(STATUS_LED);  // get the current state of GPIO1 pin
-  digitalWrite(STATUS_LED, !state);     // set pin to the opposite state
+  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
+  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
 }
 
 //gets called when WiFiManager enters configuration mode
@@ -239,10 +239,10 @@ void setup(void) {
   digitalWrite(RELAYPIN, relayStatus);
   // delay(3000);
   // digitalWrite(RELAYPIN, LOW);
-  pinMode(STATUS_LED, OUTPUT);
-  // digitalWrite(STATUS_LED, LOW);
+  pinMode(BUILTIN_LED, OUTPUT);
+  // digitalWrite(BUILTIN_LED, LOW);
   // delay(3000);
-  // digitalWrite(STATUS_LED, HIGH);
+  // digitalWrite(BUILTIN_LED, HIGH);
   pinMode(BUZZERPIN, OUTPUT);
   // digitalWrite(BUZZERPIN, HIGH);
   // delay(3000);
@@ -493,10 +493,10 @@ void setup(void) {
 
   ticker.detach();
   //keep LED on
-  digitalWrite(STATUS_LED, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
   
-  //pinMode(PIRPIN, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
+//  pinMode(PIRPIN, INPUT);
+//  attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
   
   DEBUG_PRINTLN(F("Setup end."));
 }
@@ -538,6 +538,13 @@ void loop(void) {
 #endif  
   keyBoard();
   
+  if (digitalRead(PIRPIN)==1) {
+    DEBUG_PRINTLN("DISPLAY_ON");
+    lcd.backlight();
+  } else {
+    DEBUG_PRINTLN("DISPLAY OFF");
+    lcd.noBacklight();
+  }  
   
   //nulovani statistik o pulnoci
   if (hour()==0 && runMsToday>0) {
@@ -550,15 +557,6 @@ void loop(void) {
   }
   
   testPumpProtect();
-  
-  if (digitalRead(PIRPIN)==1) {
-    //DEBUG_PRINTLN("DISPLAY_ON");
-    lcd.backlight();
-  } else {
-    //DEBUG_PRINTLN("DISPLAY OFF");
-    lcd.noBacklight();
-  }
-
 }
 
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
@@ -568,6 +566,7 @@ void relay() {
     if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
+      lastMillis = millis();
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
     } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
@@ -590,12 +589,12 @@ void changeRelay(byte status) {
 }
 
 void sendRelayHA(byte akce) {
-  digitalWrite(STATUS_LED, LOW);
+  digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(STATUS_LED, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
 }
 
 
@@ -806,7 +805,7 @@ void printTemp() {
 }
 
 bool sendDataHA(void *) {
-  digitalWrite(STATUS_LED, LOW);
+  digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
 
@@ -828,12 +827,12 @@ bool sendDataHA(void *) {
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
-  digitalWrite(STATUS_LED, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
 bool sendStatisticHA(void *) {
-  digitalWrite(STATUS_LED, LOW);
+  digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
 
@@ -845,7 +844,7 @@ bool sendStatisticHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(STATUS_LED, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
@@ -885,7 +884,7 @@ void displayTemp() {
   }
   tempRefresh=false;
   lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
-  lcd.print(F("     "));
+  lcd.print(F("       "));
   lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
   if (tempIN==TEMP_ERR) {
     displayTempErr();
@@ -1288,10 +1287,10 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
 
 // void PIREvent() {
   // if (digitalRead(PIRPIN)==1) {
-    // //DEBUG_PRINTLN("DISPLAY_ON");
+    // DEBUG_PRINTLN("DISPLAY_ON");
     // lcd.backlight();
   // } else {
-    // //DEBUG_PRINTLN("DISPLAY OFF");
+    // DEBUG_PRINTLN("DISPLAY OFF");
     // lcd.noBacklight();
   // }
 // }
