@@ -36,6 +36,8 @@ byte manualRelay                                  = 2;
 uint32_t              runMsToday                  = 0;
 uint32_t              lastMillis                  = 0;
 
+bool                  todayClear                  = false;
+
 //#define SIMTEMP
 
 #define time
@@ -547,9 +549,13 @@ void loop(void) {
   }  
   
   //nulovani statistik o pulnoci
-  if (hour()==0 && runMsToday>0) {
+  if (hour()==0 && !todayClear) {
+    todayClear =true;
     runMsToday = 0;
+  } else if hour>0 {
+    todayClear = false;
   }
+    
   
   if (relayStatus==RELAY_ON) {
     runMsToday += millis() - lastMillis;
