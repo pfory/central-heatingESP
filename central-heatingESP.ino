@@ -552,7 +552,7 @@ void loop(void) {
   if (hour()==0 && !todayClear) {
     todayClear =true;
     runMsToday = 0;
-  } else if (hour>0) {
+  } else if (hour()>0) {
     todayClear = false;
   }
     
