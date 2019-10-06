@@ -576,7 +576,7 @@ void relay() {
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
     //} else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
-    } else if (relayStatus == RELAY_ON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
+    } else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       sendRelayHA(0);
@@ -908,7 +908,7 @@ void displayTemp() {
   lcd.setCursor(TEMPSETX, TEMPSETY);
   lcd.print(F("     "));
   lcd.setCursor(TEMPSETX, TEMPSETY);
-  lcd.print((int)(storage.tempON - storage.tempOFFDiff));
+  lcd.print((int)(storage.tempOFFDiff));
   lcd.print(F("/"));
   lcd.print((int)storage.tempON);
   
