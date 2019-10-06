@@ -95,11 +95,11 @@ char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
 #define STATUS_LED                          BUILTIN_LED //status LED
-#define ONE_WIRE_BUS_IN                     D7 //MOSI                       GPIO13
+#define ONE_WIRE_BUS_IN                     D6 //MOSI                       GPIO13
 #define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
-#define ONE_WIRE_BUS_UT                     D6 //MISO                       GPIO12
+#define ONE_WIRE_BUS_UT                     D7 //MISO                       GPIO12
 #define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
-#define BUZZERPIN                           D8 //                           GPIO16
+#define BUZZERPIN                           D7 //                           GPIO16
 #define PIRPIN                              D0 //10k Pull-down, SS          GPIO15
 //SDA                                       D2 //                           GPIO4
 //SCL                                       D1 //                           GPIO5

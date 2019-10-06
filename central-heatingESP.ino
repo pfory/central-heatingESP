@@ -541,11 +541,11 @@ void loop(void) {
   keyBoard();
   
   if (digitalRead(PIRPIN)==1) {
-    DEBUG_PRINTLN("DISPLAY_ON");
+    //DEBUG_PRINTLN("DISPLAY_ON");
     lcd.backlight();
   } else {
     DEBUG_PRINTLN("DISPLAY OFF");
-    lcd.noBacklight();
+    //lcd.noBacklight();
   }  
   
   //nulovani statistik o pulnoci
