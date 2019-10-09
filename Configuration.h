@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.97  "
+#define     VERSION                      "0.98  "
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -65,18 +65,20 @@ keyboard
   #define DEBUG_PRINTF(x, y)
 #endif 
 
-char         mqtt_server[40]                = "192.168.1.56";
-uint16_t     mqtt_port                      = 1883;
-char         mqtt_username[40]              = "datel";
-char         mqtt_key[20]                   = "hanka12";
-char         mqtt_base[60]                  = "/home/Corridor/esp08"; //pak esp06
-char         static_ip[16]                  = "192.168.1.139";
-char         static_gw[16]                  = "192.168.1.1";
-char         static_sn[16]                  = "255.255.255.0";
-char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
-char         mqtt_topic_setTempON[29]       = "/home/Corridor/esp08/tempON";
-char         mqtt_topic_setTempOFFDiff[34]  = "/home/Corridor/esp08/tempOFFDiff";
-char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
+static const char* const      mqtt_server                    = "192.168.1.56";
+static const uint16_t         mqtt_port                      = 1883;
+static const char* const      mqtt_username                  = "datel";
+static const char* const      mqtt_key                       = "hanka12";
+static const char* const      mqtt_base                      = "/home/Corridor/esp06";
+static const char* const      static_ip                      = "192.168.1.109";
+static const char* const      static_gw                      = "192.168.1.1";
+static const char* const      static_sn                      = "255.255.255.0";
+static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
+static const char* const      mqtt_topic_setTempON           = "/home/Corridor/esp06/tempON";
+static const char* const      mqtt_topic_setTempOFFDiff      = "/home/Corridor/esp06/tempOFFDiff";
+static const char* const      mqtt_topic_setTempAlarm        = "/home/Corridor/esp06/tempAlarm";
+static const char* const      topicRelay                     = "/home/Corridor/esp06/manualRelay";
+static const char* const      topicRestart                   = "/home/Corridor/esp06/restart";
 
 #define MIN_UNIT                            "m"
 
@@ -112,8 +114,6 @@ char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
 #define RELAY_ON                            LOW
 #define RELAY_OFF                           HIGH
 
-char*  topicRelay                           = "/home/Corridor/esp08/manualRelay";
-char*  topicRestart                         = "/home/Corridor/esp08/restart";
 
 #define TEMPERATURE_PRECISION 12
 

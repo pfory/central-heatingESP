@@ -816,21 +816,21 @@ bool sendDataHA(void *) {
   SenderClass sender;
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
 
-  sender.add("tINKamna",        tempIN);
-  sender.add("tOUTKamna",       tempOUT);
-  sender.add("sPumpKamna",      relayStatus);
-  sender.add("t0",              tempUT[0]);
-  sender.add("t1",              tempUT[1]);
-  sender.add("t2",              tempUT[2]);
-  sender.add("t3",              tempUT[3]);
-  sender.add("t4",              tempUT[4]);
-  sender.add("t5",              tempUT[5]);
-  sender.add("t6",              tempUT[6]);
-  sender.add("t7",              tempUT[7]);
-  sender.add("t8",              tempUT[8]);
-  sender.add("t9",              tempUT[9]);
-  sender.add("t10",             tempUT[10]);
-  sender.add("t11",             tempUT[11]);
+  sender.add("tINKamna",            tempIN);
+  sender.add("tOUTKamna",           tempOUT);
+  sender.add("sPumpKamna/status",   relayStatus==RELAY_ON ? 1 : 0);
+  sender.add("t0",                  tempUT[0]);
+  sender.add("t1",                  tempUT[1]);
+  sender.add("t2",                  tempUT[2]);
+  sender.add("t3",                  tempUT[3]);
+  sender.add("t4",                  tempUT[4]);
+  sender.add("t5",                  tempUT[5]);
+  sender.add("t6",                  tempUT[6]);
+  sender.add("t7",                  tempUT[7]);
+  sender.add("t8",                  tempUT[8]);
+  sender.add("t9",                  tempUT[9]);
+  sender.add("t10",                 tempUT[10]);
+  sender.add("t11",                 tempUT[11]);
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
