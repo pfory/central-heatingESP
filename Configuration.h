@@ -74,11 +74,12 @@ static const char* const      static_ip                      = "192.168.1.109";
 static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
-static const char* const      mqtt_topic_setTempON           = "/home/Corridor/esp06/tempON";
-static const char* const      mqtt_topic_setTempOFFDiff      = "/home/Corridor/esp06/tempOFFDiff";
-static const char* const      mqtt_topic_setTempAlarm        = "/home/Corridor/esp06/tempAlarm";
-static const char* const      topicRelay                     = "/home/Corridor/esp06/manualRelay";
-static const char* const      topicRestart                   = "/home/Corridor/esp06/restart";
+static const char* const      mqtt_topic_setTempON           = "tempON";
+static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff";
+static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm";
+static const char* const      mqtt_topic_relay               = "manualRelay";
+static const char* const      mqtt_topic_restart             = "restart";
+static const char* const      mqtt_topic_sendSO              = "sorder";
 
 #define MIN_UNIT                            "m"
 
@@ -117,10 +118,14 @@ static const char* const      topicRestart                   = "/home/Corridor/e
 
 #define TEMPERATURE_PRECISION 12
 
-#define TEMPINOUTX                          0
-#define TEMPINOUTY                          0
-#define TEMPSETX                            15
-#define TEMPSETY                            0
+#define TEMPINX                             0
+#define TEMPINY                             0
+#define TEMPOUTX                            4
+#define TEMPOUTY                            0
+#define TEMPSETONX                         18
+#define TEMPSETONY                          0
+#define TEMPSETOFFX                        15
+#define TEMPSETOFFY                         0
 #define RELAY_STATUSX                       6
 #define RELAY_STATUSY                       0
 #define RUNMINTODAY_X                      15 
@@ -139,12 +144,6 @@ static const char* const      topicRestart                   = "/home/Corridor/e
 //#define SHOW_INFO_DELAY                     5000  //
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define MEAS_DELAY                          15000  //mereni teplot
-                                     
-                                     
-#define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
-#define SHOW_INFO_DELAY                     5000  //
-#define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
-#define MEAS_DELAY                          5000  //mereni teplot
                                      
 #define TEMP_ERR                            -127
 

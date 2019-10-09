@@ -7,6 +7,8 @@ GIT - https://github.com/pfory/central-heating
 
 #include "Configuration.h"
 
+byte            sensorOrder[NUMBER_OF_DEVICES];
+
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWireOUT(ONE_WIRE_BUS_OUT);
 OneWire oneWireIN(ONE_WIRE_BUS_IN);
@@ -25,7 +27,6 @@ float                 tempIN                      = 0.f;
 float                 tempUT[12];              
 const unsigned long   pumpProtect                 = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
 const unsigned long   pumpProtectRun              = 300000;     //1000*60*5;     //in ms = 5 min
-bool                  firstMeasComplete           = false;
 bool                  tempRefresh                 = false;
 uint32_t              heartBeat                   = 0;
 float                 temp[15];              
@@ -156,7 +157,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   DEBUG_PRINTLN();
   
-  if (strcmp(topic, topicRelay)==0) {
+  
+  //if (strcmp(topic, mqtt_topic_relay)==0) {
+    if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set manual control relay to ");
     manualRelay = val.toInt();
@@ -165,7 +168,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       DEBUG_PRINTLN(F("OFF"));
     }
-  } else if (strcmp(topic, topicRestart)==0) {
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
+//  } else if (strcmp(topic, mqtt_topic_restart)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
@@ -175,24 +179,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
     displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
     lcd.write(byte(0));
     lcd.print("C");
-  } else if (strcmp(topic, mqtt_topic_setTempON)==0) {
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str())==0) {
+  //} else if (strcmp(topic, mqtt_topic_setTempON)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature for ON: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempON = val.toInt();
     saveConfig();
-  } else if (strcmp(topic, mqtt_topic_setTempOFFDiff)==0) {
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str())==0) {
+  //} else if (strcmp(topic, mqtt_topic_setTempOFFDiff)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature diff for OFF: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempOFFDiff = val.toInt();
     saveConfig();
-  } else if (strcmp(topic, mqtt_topic_setTempAlarm)==0) {
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str())==0) {
+  //} else if (strcmp(topic, mqtt_topic_setTempAlarm)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set alerm temperature: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempAlarm = val.toInt();
     saveConfig();
+   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_sendSO)).c_str())==0) {
+   //} else if (strcmp(topic, mqtt_topic_sendSO)==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("send sensor order");
+    void * a;
+    sendSOHA(a);
   }
 
 }
@@ -567,6 +580,10 @@ void loop(void) {
 
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 void relay() {
+  if (relayStatus == RELAY_OFF && (tempOUT >= SAFETY_ON || tempIN >= SAFETY_ON)) {
+    relayStatus = RELAY_ON;
+    changeRelay(relayStatus);
+  }
   if (manualRelay==2) {
     //-----------------------------------zmena 0-1--------------------------------------------
     if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
@@ -726,7 +743,6 @@ void getTemp() {
     // }*/
   // }
 
-  firstMeasComplete=true;
 }
 
 void printTemp() {
@@ -890,27 +906,21 @@ void displayTemp() {
     return;
   }
   tempRefresh=false;
-  lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
-  lcd.print(F("       "));
-  lcd.setCursor(TEMPINOUTX, TEMPINOUTY);
   if (tempIN==TEMP_ERR) {
     displayTempErr();
   }else {
-    lcd.print((int)tempIN);
+    displayValue(TEMPINX,TEMPINY, (int)tempIN, 3, 0);
   }
   lcd.print(F("/"));
   if (tempOUT==TEMP_ERR) {
     displayTempErr();
   }else {
-    lcd.print((int)tempOUT);
+    displayValue(TEMPOUTX,TEMPOUTY, (int)tempOUT, 3, 0);
   }
   
-  lcd.setCursor(TEMPSETX, TEMPSETY);
-  lcd.print(F("     "));
-  lcd.setCursor(TEMPSETX, TEMPSETY);
-  lcd.print((int)(storage.tempOFFDiff));
+  displayValue(TEMPSETOFFX,TEMPSETOFFY, (int)(storage.tempOFFDiff), 2, 0);
   lcd.print(F("/"));
-  lcd.print((int)storage.tempON);
+  displayValue(TEMPSETONX,TEMPSETONY, (int)(storage.tempON), 2, 0);
   
 /*  byte radka=1;
   byte sensor=0;
@@ -927,61 +937,46 @@ void displayTemp() {
 */
   
   //statistics of pump run
-  lcd.setCursor(RUNMINTODAY_X, RUNMINTODAY_Y);
-  lcd.print((int)(runMsToday/1000/60));
+  displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, (int)(runMsToday/1000/60), 4, 0);
   lcd.print(MIN_UNIT);
 }
 
-void displayRadTemp(byte sl, byte rad, byte s) {
-    lcd.setCursor(sl, rad);
-    if (tempUT[s]==TEMP_ERR) {
-      displayTempErr();
-    }else {
-      addSpacesBefore((int)tempUT[s]);
-      lcd.print((int)tempUT[s]);
-    }
-    lcd.setCursor(sl+2, rad);
-    lcd.print(F("/"));
-    s++;
-    if (tempUT[s]==TEMP_ERR) {
-      displayTempErr();
-    }else {
-      lcd.print((int)tempUT[s]);    
-      addSpacesAfter((int)tempUT[s]);
-    }
-}
+// void displayRadTemp(byte sl, byte rad, byte s) {
+    // lcd.setCursor(sl, rad);
+    // if (tempUT[s]==TEMP_ERR) {
+      // displayTempErr();
+    // }else {
+      // addSpacesBefore((int)tempUT[s]);
+      // lcd.print((int)tempUT[s]);
+    // }
+    // lcd.setCursor(sl+2, rad);
+    // lcd.print(F("/"));
+    // s++;
+    // if (tempUT[s]==TEMP_ERR) {
+      // displayTempErr();
+    // }else {
+      // lcd.print((int)tempUT[s]);    
+      // addSpacesAfter((int)tempUT[s]);
+    // }
+// }
+
 
 void displayTempErr() {
   lcd.print("ER");
 }
 
-void addSpacesBefore(int cislo) {
-  //if (cislo<100 && cislo>0) lcd.print(" ");
-  if (cislo<10 && cislo>0) lcd.print(" ");
-  //if (cislo<=0 && cislo>-10) lcd.print(" ");
-}
+// void addSpacesBefore(int cislo) {
+  // //if (cislo<100 && cislo>0) lcd.print(" ");
+  // if (cislo<10 && cislo>0) lcd.print(" ");
+  // //if (cislo<=0 && cislo>-10) lcd.print(" ");
+// }
 
-void addSpacesAfter(int cislo) {
-  //if (cislo<100 && cislo>0) lcd.print(" ");
-  if (cislo<10 && cislo>0) lcd.print(" ");
-  //if (cislo<=0 && cislo>-10) lcd.print(" ");
-}
+// void addSpacesAfter(int cislo) {
+  // //if (cislo<100 && cislo>0) lcd.print(" ");
+  // if (cislo<10 && cislo>0) lcd.print(" ");
+  // //if (cislo<=0 && cislo>-10) lcd.print(" ");
+// }
 
-
-//display time on LCD
-void lcd2digits(int number) {
-  if (number >= 0 && number < 10) {
-    lcd.write('0');
-  }
-  lcd.print(number);
-}
-
-void print2digits(int number) {
-  if (number >= 0 && number < 10) {
-    Serial.write('0');
-  }
-  DEBUG_PRINT(number);
-}
 
 //zabranuje zatuhnuti cerpadla v lete
 void testPumpProtect() {
@@ -1105,18 +1100,16 @@ void setTempAlarm() {
   displayVarSub=' ';
 }
 
-void controlRange(uint8_t *pTime, uint8_t min, uint8_t max) {
-   if (*pTime<min) {
-     *pTime=min;
-   }
-   if (*pTime>max) {
-     *pTime=max;
-   }
+// void controlRange(uint8_t *pTime, uint8_t min, uint8_t max) {
+   // if (*pTime<min) {
+     // *pTime=min;
+   // }
+   // if (*pTime>max) {
+     // *pTime=max;
+   // }
   
-}
+// }
 
-void loadConfig() {
-}
 
 void showHelpKey() {
   lcd.setCursor(0,0);
@@ -1375,4 +1368,25 @@ bool readConfig() {
     DEBUG_PRINTLN(F(" ERROR: failed to mount FS!"));
   }
   return false;
+}
+
+bool sendSOHA(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  printSystemTime();
+  DEBUG_PRINTLN(F(" - I am sending sensor order to HA"));
+  SenderClass sender;
+  sender.add("so0", sensorOrder[0]);
+  sender.add("so1", sensorOrder[1]);
+  sender.add("so2", sensorOrder[2]);
+  sender.add("so3", sensorOrder[3]);
+  sender.add("so4", sensorOrder[4]);
+  sender.add("so5", sensorOrder[5]);
+  sender.add("so6", sensorOrder[6]);
+  sender.add("so7", sensorOrder[7]);
+
+  noInterrupts();
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  interrupts();
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
 }
