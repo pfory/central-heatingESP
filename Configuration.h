@@ -80,6 +80,19 @@ static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm";
 static const char* const      mqtt_topic_relay               = "manualRelay";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_sendSO              = "sorder";
+static const char* const      mqtt_topic_so0                 = "so0";
+static const char* const      mqtt_topic_so1                 = "so1";
+static const char* const      mqtt_topic_so2                 = "so2";
+static const char* const      mqtt_topic_so3                 = "so3";
+static const char* const      mqtt_topic_so4                 = "so4";
+static const char* const      mqtt_topic_so5                 = "so5";
+static const char* const      mqtt_topic_so6                 = "so6";
+static const char* const      mqtt_topic_so7                 = "so7";
+static const char* const      mqtt_topic_so8                 = "so8";
+static const char* const      mqtt_topic_so9                 = "so9";
+static const char* const      mqtt_topic_so10                = "so10";
+static const char* const      mqtt_topic_so11                = "so11";
+static const char* const      mqtt_topic_so12                = "so12";
 
 #define MIN_UNIT                            "m"
 

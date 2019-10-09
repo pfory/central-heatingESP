@@ -20,7 +20,12 @@ DallasTemperature sensorsIN(&oneWireIN);
 DallasTemperature sensorsUT(&oneWireUT);
 
 DeviceAddress inThermometer, outThermometer;
-DeviceAddress utT[15];
+DeviceAddress utT[NUMBER_OF_DEVICES];
+
+unsigned int numberOfDevices                = 0; // Number of temperature devices found
+
+float sensor[NUMBER_OF_DEVICES];
+
 
 float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
@@ -200,14 +205,91 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINTLN(val.toInt());
     storage.tempAlarm = val.toInt();
     saveConfig();
-   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_sendSO)).c_str())==0) {
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_sendSO)).c_str())==0) {
    //} else if (strcmp(topic, mqtt_topic_sendSO)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("send sensor order");
     void * a;
     sendSOHA(a);
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so0)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 0 to ");
+    sensorOrder[0]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so1)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 1 to ");
+    sensorOrder[1]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so2)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 2 to ");
+    sensorOrder[2]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so3)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 3 to ");
+    sensorOrder[3]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so4)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 4 to ");
+    sensorOrder[4]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so5)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 5 to ");
+    sensorOrder[5]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so6)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 6 to ");
+    sensorOrder[6]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so7)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 7 to ");
+    sensorOrder[7]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so8)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 8 to ");
+    sensorOrder[8]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so9)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 9 to ");
+    sensorOrder[9]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so10)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 10 to ");
+    sensorOrder[10]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so11)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 11 to ");
+    sensorOrder[11]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so12)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set sensor order 12 to ");
+    sensorOrder[12]=val.toInt();
+    DEBUG_PRINT(val.toInt());
+    saveConfig();  
   }
-
 }
 
 bool isDebugEnabled()
@@ -340,29 +422,9 @@ void setup(void) {
 #endif
 
 #ifdef ota
-    //OTA
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
-
-  // Hostname defaults to esp8266-[ChipID]
   ArduinoOTA.setHostname("Central heating");
 
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
-
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
   ArduinoOTA.onStart([]() {
-    // String type;
-    // if (ArduinoOTA.getCommand() == U_FLASH)
-      // type = "sketch";
-    // else // U_SPIFFS
-      // type = "filesystem";
-
-    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    //DEBUG_PRINTLN("Start updating " + type);
     DEBUG_PRINTLN("Start updating ");
   });
   ArduinoOTA.onEnd([]() {
@@ -406,6 +468,16 @@ void setup(void) {
     sensorsOUT.begin(); 
     sensorsIN.begin(); 
     sensorsUT.begin(); 
+    
+  // Loop through each device, print out address
+  DeviceAddress tempDeviceAddress;
+  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
+    // Search the wire for address
+    if (sensorsUT.getAddress(tempDeviceAddress, i)) {
+      memcpy(utT[i],tempDeviceAddress,8);
+    }
+  }
+    
 #ifdef SIMTEMP
     if (1==0) {
 #else
@@ -656,11 +728,23 @@ void startMeas() {
 }
 
 void getTemp() {
-  //DeviceAddress da;
+  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
+    float tempTemp=(float)TEMP_ERR;
+    for (byte j=0;j<10;j++) { //try to read temperature ten times
+      tempTemp = sensorsUT.getTempC(utT[i]);
+      if (tempTemp>=-55) {
+        break;
+      }
+    }
+
+    // DEBUG_PRINTLN(tempTemp);
+    tempUT[0] = sensor[sensorOrder[0]];
+  }
+
   tempIN = sensorsIN.getTempCByIndex(0);
   tempOUT = sensorsOUT.getTempCByIndex(0);
 
-  tempUT[0]=sensorsUT.getTempCByIndex(5);   //obyvak vstup
+/*  tempUT[0]=sensorsUT.getTempCByIndex(5);   //obyvak vstup
   tempUT[1]=sensorsUT.getTempCByIndex(4);   //obyvak vystup
   tempUT[2]=sensorsUT.getTempCByIndex(3);   //loznice nova vstup
   tempUT[3]=sensorsUT.getTempCByIndex(11);  //loznice nova vystup
@@ -672,7 +756,7 @@ void getTemp() {
   tempUT[9]=sensorsUT.getTempCByIndex(6);   //bojler vystup
   tempUT[10]=sensorsUT.getTempCByIndex(7);  //chodba vstup
   tempUT[11]=sensorsUT.getTempCByIndex(10); //chodba vystup
-  
+*/
 
   /*
   0 - 28FF60AA9015018E
@@ -1314,7 +1398,19 @@ bool saveConfig() {
   doc["tempON"]         = storage.tempON;
   doc["tempOFFDiff"]    = storage.tempOFFDiff;
   doc["tempAlarm"]      = storage.tempAlarm;
-
+  doc["sensorOrder[0]"]          = sensorOrder[0];
+  doc["sensorOrder[1]"]          = sensorOrder[1];
+  doc["sensorOrder[2]"]          = sensorOrder[2];
+  doc["sensorOrder[3]"]          = sensorOrder[3];
+  doc["sensorOrder[4]"]          = sensorOrder[4];
+  doc["sensorOrder[5]"]          = sensorOrder[5];
+  doc["sensorOrder[6]"]          = sensorOrder[6];
+  doc["sensorOrder[7]"]          = sensorOrder[7];
+  doc["sensorOrder[8]"]          = sensorOrder[8];
+  doc["sensorOrder[9]"]          = sensorOrder[9];
+  doc["sensorOrder[10]"]          = sensorOrder[10];
+  doc["sensorOrder[11]"]          = sensorOrder[11];
+  doc["sensorOrder[12]"]          = sensorOrder[12];
   File configFile = SPIFFS.open(CFGFILE, "w+");
   if (!configFile) {
     DEBUG_PRINTLN(F("Failed to open config file for writing"));
@@ -1357,6 +1453,46 @@ bool readConfig() {
         storage.tempON        = doc["tempON"];
         storage.tempOFFDiff   = doc["tempOFFDiff"];
         storage.tempAlarm     = doc["tempAlarm"];
+        
+        sensorOrder[0] = doc["sensorOrder[0]"];
+        DEBUG_PRINT(F("sensorOrder[0]: "));
+        DEBUG_PRINTLN(sensorOrder[0]);
+        sensorOrder[1] = doc["sensorOrder[1]"];
+        DEBUG_PRINT(F("sensorOrder[1]: "));
+        DEBUG_PRINTLN(sensorOrder[1]);
+        sensorOrder[2] = doc["sensorOrder[2]"];
+        DEBUG_PRINT(F("sensorOrder[2]: "));
+        DEBUG_PRINTLN(sensorOrder[2]);
+        sensorOrder[3] = doc["sensorOrder[3]"];
+        DEBUG_PRINT(F("sensorOrder[3]: "));
+        DEBUG_PRINTLN(sensorOrder[3]);
+        sensorOrder[4] = doc["sensorOrder[4]"];
+        DEBUG_PRINT(F("sensorOrder[4]: "));
+        DEBUG_PRINTLN(sensorOrder[4]);
+        sensorOrder[5] = doc["sensorOrder[5]"];
+        DEBUG_PRINT(F("sensorOrder[5]: "));
+        DEBUG_PRINTLN(sensorOrder[5]);
+        sensorOrder[6] = doc["sensorOrder[6]"];
+        DEBUG_PRINT(F("sensorOrder[6]: "));
+        DEBUG_PRINTLN(sensorOrder[6]);
+        sensorOrder[7] = doc["sensorOrder[7]"];
+        DEBUG_PRINT(F("sensorOrder[7]: "));
+        DEBUG_PRINTLN(sensorOrder[7]);
+        sensorOrder[8] = doc["sensorOrder[8]"];
+        DEBUG_PRINT(F("sensorOrder[8]: "));
+        DEBUG_PRINTLN(sensorOrder[8]);
+        sensorOrder[9] = doc["sensorOrder[9]"];
+        DEBUG_PRINT(F("sensorOrder[9]: "));
+        DEBUG_PRINTLN(sensorOrder[9]);
+        sensorOrder[10] = doc["sensorOrder[10]"];
+        DEBUG_PRINT(F("sensorOrder[10]: "));
+        DEBUG_PRINTLN(sensorOrder[10]);
+        sensorOrder[11] = doc["sensorOrder[11]"];
+        DEBUG_PRINT(F("sensorOrder[11]: "));
+        DEBUG_PRINTLN(sensorOrder[11]);
+        sensorOrder[12] = doc["sensorOrder[12]"];
+        DEBUG_PRINT(F("sensorOrder[12]: "));
+        DEBUG_PRINTLN(sensorOrder[12]);
 
         return true;
       }
@@ -1383,6 +1519,11 @@ bool sendSOHA(void *) {
   sender.add("so5", sensorOrder[5]);
   sender.add("so6", sensorOrder[6]);
   sender.add("so7", sensorOrder[7]);
+  sender.add("so8", sensorOrder[8]);
+  sender.add("so9", sensorOrder[9]);
+  sender.add("so10", sensorOrder[10]);
+  sender.add("so11", sensorOrder[11]);
+  sender.add("so11", sensorOrder[12]);
 
   noInterrupts();
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
