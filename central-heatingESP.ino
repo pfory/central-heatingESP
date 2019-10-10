@@ -37,6 +37,8 @@ uint32_t              runMsToday                  = 0;
 uint32_t              lastMillis                  = 0;
 
 bool                  todayClear                  = false;
+bool                  dispClear                   = false;
+
 
 //#define SIMTEMP
 
@@ -548,19 +550,15 @@ void loop(void) {
     //lcd.noBacklight();
   }  
   
-  //nulovani statistik o pulnoci
-  if (hour()==0 && !todayClear) {
-    todayClear =true;
-    runMsToday = 0;
-  } else if (hour()>0) {
-    todayClear = false;
-  }
     
   
   if (relayStatus==RELAY_ON) {
     runMsToday += millis() - lastMillis;
     lastMillis = millis();
   }
+  
+  displayClear();
+  nulStat();
   
   testPumpProtect();
 }
@@ -589,6 +587,27 @@ void relay() {
       changeRelay(relayStatus);
   }
   dispRelayStatus();
+}
+
+void displayClear() {
+  if (minute()==0 && second()==0) {
+    if (!dispClear) { 
+      lcd.clear();
+      dispClear = true;
+    }
+  } else {
+    dispClear = false;
+  }
+}
+
+  //nulovani statistik o pulnoci
+void nulStat() {
+  if (hour()==0 && !todayClear) {
+    todayClear =true;
+    runMsToday = 0;
+  } else if (hour()>0) {
+    todayClear = false;
+  }
 }
 
 void changeRelay(byte status) {

@@ -69,14 +69,14 @@ char         mqtt_server[40]                = "192.168.1.56";
 uint16_t     mqtt_port                      = 1883;
 char         mqtt_username[40]              = "datel";
 char         mqtt_key[20]                   = "hanka12";
-char         mqtt_base[60]                  = "/home/Corridor/esp08"; //pak esp06
-char         static_ip[16]                  = "192.168.1.139";
+char         mqtt_base[60]                  = "/home/Corridor/esp06"; //pak esp06
+char         static_ip[16]                  = "192.168.1.109";
 char         static_gw[16]                  = "192.168.1.1";
 char         static_sn[16]                  = "255.255.255.0";
 char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
-char         mqtt_topic_setTempON[29]       = "/home/Corridor/esp08/tempON";
-char         mqtt_topic_setTempOFFDiff[34]  = "/home/Corridor/esp08/tempOFFDiff";
-char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp08/tempAlarm";
+char         mqtt_topic_setTempON[29]       = "/home/Corridor/esp06/tempON";
+char         mqtt_topic_setTempOFFDiff[34]  = "/home/Corridor/esp06/tempOFFDiff";
+char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp06/tempAlarm";
 
 #define MIN_UNIT                            "m"
 
