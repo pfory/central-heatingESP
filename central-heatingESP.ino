@@ -39,8 +39,7 @@ float                 temp[15];
 byte relayStatus                                  = RELAY_OFF;
 byte manualRelay                                  = 2;
                                              
-uint32_t              runMsToday                  = 0;
-uint32_t              lastMillis                  = 0;
+uint32_t              runSecToday                  = 0;
 
 bool                  todayClear                  = false;
 
@@ -571,6 +570,7 @@ void setup(void) {
   timer.every(SEND_DELAY,     sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
   timer.every(MEAS_DELAY,     readTemp);
+  timer.every(1000, calcStat);
 #ifdef time  
   timer.every(500, displayTime);
 #endif
@@ -633,19 +633,8 @@ void loop(void) {
     //lcd.noBacklight();
   }  
   
-  //nulovani statistik o pulnoci
-  if (hour()==0 && !todayClear) {
-    todayClear =true;
-    runMsToday = 0;
-  } else if (hour()>0) {
-    todayClear = false;
-  }
-    
-  
-  if (relayStatus==RELAY_ON) {
-    runMsToday += millis() - lastMillis;
-    lastMillis = millis();
-  }
+  nulStat();
+  displayClear();
   
   testPumpProtect();
 }
@@ -678,6 +667,28 @@ void relay() {
       changeRelay(relayStatus);
   }
   dispRelayStatus();
+}
+
+
+void nulStat() {
+ //nulovani statistik o pulnoci
+  if (hour()==0 && !todayClear) {
+    todayClear =true;
+    runSecToday = 0;
+  } else if (hour()>0) {
+    todayClear = false;
+  }
+}
+
+void displayClear() {
+  if (minute()==0 && second()==0) {
+    if (!dispClear) { 
+      lcd.clear();
+      dispClear = true;
+    }
+  } else {
+    dispClear = false;
+  }
 }
 
 void changeRelay(byte status) {
@@ -1529,5 +1540,12 @@ bool sendSOHA(void *) {
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   interrupts();
   digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
+bool calcStat(void *) {  //run each second from timer
+  if (relayStatus == RELAY_ON) {
+    runSecToday ++;
+  }
   return true;
 }
