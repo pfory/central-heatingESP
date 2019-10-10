@@ -635,20 +635,8 @@ void loop(void) {
     //lcd.noBacklight();
   }  
   
-<<<<<<< HEAD
-    
-  
-  if (relayStatus==RELAY_ON) {
-    runMsToday += millis() - lastMillis;
-    lastMillis = millis();
-  }
-=======
   nulStat();
   displayClear();
->>>>>>> e02f6638b1d18b51f1887583ab8eaa9707e703f3
-  
-  displayClear();
-  nulStat();
   
   testPumpProtect();
 }
@@ -664,7 +652,7 @@ void relay() {
     if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-      lastMillis = millis();
+      //lastMillis = millis();
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
     //} else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
@@ -683,9 +671,6 @@ void relay() {
   dispRelayStatus();
 }
 
-<<<<<<< HEAD
-=======
-
 void nulStat() {
  //nulovani statistik o pulnoci
   if (hour()==0 && !todayClear) {
@@ -696,7 +681,6 @@ void nulStat() {
   }
 }
 
->>>>>>> e02f6638b1d18b51f1887583ab8eaa9707e703f3
 void displayClear() {
   if (minute()==0 && second()==0) {
     if (!dispClear) { 
@@ -708,19 +692,6 @@ void displayClear() {
   }
 }
 
-<<<<<<< HEAD
-  //nulovani statistik o pulnoci
-void nulStat() {
-  if (hour()==0 && !todayClear) {
-    todayClear =true;
-    runMsToday = 0;
-  } else if (hour()>0) {
-    todayClear = false;
-  }
-}
-
-=======
->>>>>>> e02f6638b1d18b51f1887583ab8eaa9707e703f3
 void changeRelay(byte status) {
   digitalWrite(RELAYPIN, status);
 }
@@ -1034,13 +1005,13 @@ void displayTemp() {
   if (tempIN==TEMP_ERR) {
     displayTempErr();
   }else {
-    displayValue(TEMPINX,TEMPINY, (int)tempIN, 3, 0);
+    displayValue(TEMPINX,TEMPINY, (int)tempIN, 2, 0);
   }
   lcd.print(F("/"));
   if (tempOUT==TEMP_ERR) {
     displayTempErr();
   }else {
-    displayValue(TEMPOUTX,TEMPOUTY, (int)tempOUT, 3, 0);
+    displayValue(TEMPOUTX,TEMPOUTY, (int)tempOUT, 2, 0);
   }
   
   displayValue(TEMPSETOFFX,TEMPSETOFFY, (int)(storage.tempOFFDiff), 2, 0);
@@ -1062,7 +1033,7 @@ void displayTemp() {
 */
   
   //statistics of pump run
-  displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, (int)(runMsToday/1000/60), 4, 0);
+  displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, (int)(runSecToday / 60), 4, 0);
   lcd.print(MIN_UNIT);
 }
 
