@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.97  "
+#define     VERSION                      "0.98  "
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -65,6 +65,7 @@ keyboard
   #define DEBUG_PRINTF(x, y)
 #endif 
 
+<<<<<<< HEAD
 char         mqtt_server[40]                = "192.168.1.56";
 uint16_t     mqtt_port                      = 1883;
 char         mqtt_username[40]              = "datel";
@@ -77,6 +78,36 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 char         mqtt_topic_setTempON[29]       = "/home/Corridor/esp06/tempON";
 char         mqtt_topic_setTempOFFDiff[34]  = "/home/Corridor/esp06/tempOFFDiff";
 char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp06/tempAlarm";
+=======
+static const char* const      mqtt_server                    = "192.168.1.56";
+static const uint16_t         mqtt_port                      = 1883;
+static const char* const      mqtt_username                  = "datel";
+static const char* const      mqtt_key                       = "hanka12";
+static const char* const      mqtt_base                      = "/home/Corridor/esp06";
+static const char* const      static_ip                      = "192.168.1.109";
+static const char* const      static_gw                      = "192.168.1.1";
+static const char* const      static_sn                      = "255.255.255.0";
+static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
+static const char* const      mqtt_topic_setTempON           = "tempON";
+static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff";
+static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm";
+static const char* const      mqtt_topic_relay               = "manualRelay";
+static const char* const      mqtt_topic_restart             = "restart";
+static const char* const      mqtt_topic_sendSO              = "sorder";
+static const char* const      mqtt_topic_so0                 = "so0";
+static const char* const      mqtt_topic_so1                 = "so1";
+static const char* const      mqtt_topic_so2                 = "so2";
+static const char* const      mqtt_topic_so3                 = "so3";
+static const char* const      mqtt_topic_so4                 = "so4";
+static const char* const      mqtt_topic_so5                 = "so5";
+static const char* const      mqtt_topic_so6                 = "so6";
+static const char* const      mqtt_topic_so7                 = "so7";
+static const char* const      mqtt_topic_so8                 = "so8";
+static const char* const      mqtt_topic_so9                 = "so9";
+static const char* const      mqtt_topic_so10                = "so10";
+static const char* const      mqtt_topic_so11                = "so11";
+static const char* const      mqtt_topic_so12                = "so12";
+>>>>>>> e02f6638b1d18b51f1887583ab8eaa9707e703f3
 
 #define MIN_UNIT                            "m"
 
@@ -112,15 +143,17 @@ char         mqtt_topic_setTempAlarm[32]    = "/home/Corridor/esp06/tempAlarm";
 #define RELAY_ON                            LOW
 #define RELAY_OFF                           HIGH
 
-char*  topicRelay                           = "/home/Corridor/esp08/manualRelay";
-char*  topicRestart                         = "/home/Corridor/esp08/restart";
 
 #define TEMPERATURE_PRECISION 12
 
-#define TEMPINOUTX                          0
-#define TEMPINOUTY                          0
-#define TEMPSETX                            15
-#define TEMPSETY                            0
+#define TEMPINX                             0
+#define TEMPINY                             0
+#define TEMPOUTX                            4
+#define TEMPOUTY                            0
+#define TEMPSETONX                         18
+#define TEMPSETONY                          0
+#define TEMPSETOFFX                        15
+#define TEMPSETOFFY                         0
 #define RELAY_STATUSX                       6
 #define RELAY_STATUSY                       0
 #define RUNMINTODAY_X                      15 
@@ -139,12 +172,6 @@ char*  topicRestart                         = "/home/Corridor/esp08/restart";
 //#define SHOW_INFO_DELAY                     5000  //
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define MEAS_DELAY                          15000  //mereni teplot
-                                     
-                                     
-#define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
-#define SHOW_INFO_DELAY                     5000  //
-#define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
-#define MEAS_DELAY                          5000  //mereni teplot
                                      
 #define TEMP_ERR                            -127
 
