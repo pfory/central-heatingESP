@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.98  "
+#define     VERSION                      "1.00"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -129,7 +129,7 @@ static const char* const      mqtt_topic_so12                = "so12";
 #define RELAY_OFF                           HIGH
 
 
-#define TEMPERATURE_PRECISION 12
+#define TEMPERATURE_PRECISION 10
 
 #define TEMPINX                             0
 #define TEMPINY                             0
@@ -156,7 +156,7 @@ static const char* const      mqtt_topic_so12                = "so12";
 #define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
 //#define SHOW_INFO_DELAY                     5000  //
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
-#define MEAS_DELAY                          15000  //mereni teplot
+#define MEAS_DELAY                          2000  //mereni teplot
                                      
 #define TEMP_ERR                            -127
 

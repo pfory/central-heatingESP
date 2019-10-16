@@ -571,7 +571,7 @@ void setup(void) {
   //setup timers
   timer.every(SEND_DELAY,     sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
-  timer.every(MEAS_DELAY,     readTemp);
+  timer.every(MEAS_DELAY,     tempMeas);
   timer.every(1000, calcStat);
 #ifdef time  
   timer.every(500, displayTime);
@@ -655,8 +655,8 @@ void relay() {
       //lastMillis = millis();
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
-    //} else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
-    } else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
+    } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
+    //} else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       sendRelayHA(0);
@@ -720,38 +720,25 @@ void dispRelayStatus() {
 }
 
 
-bool readTemp(void *) {
-  startMeas(); 
-  getTemp();
+bool tempMeas(void *) {
   tempRefresh = true;
-  //printTemp();
-  return true;
-}
-
-
-void startMeas() {
-  // call sensors.requestTemperatures() to issue a global temperature 
-  // request to all devices on the bus
   DEBUG_PRINT(F("Requesting temperatures..."));
   sensorsIN.requestTemperatures(); // Send the command to get temperatures
   sensorsOUT.requestTemperatures(); // Send the command to get temperatures
-  sensorsUT.requestTemperatures(); // Send the command to get temperatures
+//  sensorsUT.requestTemperatures(); // Send the command to get temperatures
   DEBUG_PRINTLN(F("DONE"));
-}
+  // for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
+    // float tempTemp=(float)TEMP_ERR;
+    // for (byte j=0;j<10;j++) { //try to read temperature ten times
+      // tempTemp = sensorsUT.getTempC(utT[i]);
+      // if (tempTemp>=-55) {
+        // break;
+      // }
+    // }
 
-void getTemp() {
-  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
-    float tempTemp=(float)TEMP_ERR;
-    for (byte j=0;j<10;j++) { //try to read temperature ten times
-      tempTemp = sensorsUT.getTempC(utT[i]);
-      if (tempTemp>=-55) {
-        break;
-      }
-    }
-
-    // DEBUG_PRINTLN(tempTemp);
-    tempUT[0] = sensor[sensorOrder[0]];
-  }
+    // // DEBUG_PRINTLN(tempTemp);
+    // tempUT[0] = sensor[sensorOrder[0]];
+  // }
 
   tempIN = sensorsIN.getTempCByIndex(0);
   tempOUT = sensorsOUT.getTempCByIndex(0);
@@ -838,6 +825,9 @@ void getTemp() {
       // tempUT[9]=sensorsUT.getTempCByIndex(i);
     // }*/
   // }
+
+  
+  return true;
 
 }
 
@@ -1003,13 +993,13 @@ void displayTemp() {
   }
   tempRefresh=false;
   if (tempIN==TEMP_ERR) {
-    displayTempErr();
+    displayTempErr(TEMPINX,TEMPINY);
   }else {
     displayValue(TEMPINX,TEMPINY, (int)tempIN, 2, 0);
   }
   lcd.print(F("/"));
   if (tempOUT==TEMP_ERR) {
-    displayTempErr();
+    displayTempErr(TEMPOUTX,TEMPOUTY);
   }else {
     displayValue(TEMPOUTX,TEMPOUTY, (int)tempOUT, 2, 0);
   }
@@ -1057,8 +1047,9 @@ void displayTemp() {
 // }
 
 
-void displayTempErr() {
-  lcd.print("ER");
+void displayTempErr(int x, int y) {
+  lcd.setCursor(x,y);
+  lcd.print("--");
 }
 
 // void addSpacesBefore(int cislo) {
