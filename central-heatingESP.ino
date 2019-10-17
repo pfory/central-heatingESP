@@ -21,8 +21,13 @@ DallasTemperature sensorsUT(&oneWireUT);
 
 DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[NUMBER_OF_DEVICES];
+DeviceAddress tempDeviceAddress;
+
+DeviceAddress tempDeviceAddresses[NUMBER_OF_DEVICES];
 
 unsigned int numberOfDevices                = 0; // Number of temperature devices found
+bool firstTempMeasDone                      = false;
+
 
 float sensor[NUMBER_OF_DEVICES];
 
@@ -36,7 +41,7 @@ bool                  tempRefresh                 = false;
 uint32_t              heartBeat                   = 0;
 float                 temp[15];              
                                              
-byte relayStatus                                  = RELAY_OFF;
+byte relayStatus                                  = RELAY_ON;
 byte manualRelay                                  = 2;
                                              
 uint32_t              runSecToday                  = 0;
@@ -466,18 +471,7 @@ void setup(void) {
   lcd.clear();
 
   while (true) {
-    sensorsOUT.begin(); 
-    sensorsIN.begin(); 
-    sensorsUT.begin(); 
-    
-  // Loop through each device, print out address
-  DeviceAddress tempDeviceAddress;
-  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
-    // Search the wire for address
-    if (sensorsUT.getAddress(tempDeviceAddress, i)) {
-      memcpy(utT[i],tempDeviceAddress,8);
-    }
-  }
+    dsInit();
     
 #ifdef SIMTEMP
     if (1==0) {
@@ -488,6 +482,8 @@ void setup(void) {
       //peep.Delay(100,40,1,255);
 #endif
       DEBUG_PRINTLN(F("NO temperature sensor(s) DS18B20 found!!!!!!!!!"));
+      DEBUG_PRINTLN(sensorsIN.getDeviceCount());
+      DEBUG_PRINTLN(sensorsOUT.getDeviceCount());
       lcd.setCursor(0, 1);
       lcd.print(F("!NO temp.sensor(s)!!"));
       lcd.setCursor(0, 2);
@@ -502,21 +498,12 @@ void setup(void) {
     delay(2000);
   }
 
-  sensorsOUT.setResolution(TEMPERATURE_PRECISION);
-  sensorsOUT.setWaitForConversion(false);
-  sensorsIN.setResolution(TEMPERATURE_PRECISION);
-  sensorsIN.setWaitForConversion(false);
-  sensorsUT.setResolution(TEMPERATURE_PRECISION);
-  sensorsUT.setWaitForConversion(false);
-
-  
   DEBUG_PRINTLN();
   DEBUG_PRINT(F("Sensor(s) "));
   DEBUG_PRINT(sensorsIN.getDeviceCount());
   DEBUG_PRINT(F(" on bus IN - pin "));
   DEBUG_PRINTLN(ONE_WIRE_BUS_IN);
   DEBUG_PRINT(F("Device Address: "));
-  sensorsIN.getAddress(inThermometer, 0); 
   printAddress(inThermometer);
   DEBUG_PRINTLN();
   
@@ -535,7 +522,6 @@ void setup(void) {
   DEBUG_PRINT(F(" on bus OUT - pin "));
   DEBUG_PRINTLN(ONE_WIRE_BUS_OUT);
   DEBUG_PRINT(F("Device Address: "));
-  sensorsOUT.getAddress(outThermometer, 0); 
   printAddress(outThermometer);
   DEBUG_PRINTLN();
    
@@ -592,6 +578,8 @@ void setup(void) {
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
 void loop(void) { 
+  firstTempMeasDone ? relay() : void();
+
   timer.tick(); // tick the timer
 #ifdef ota
   ArduinoOTA.handle();
@@ -602,7 +590,6 @@ void loop(void) {
   }
   client.loop();
 
-  relay();
   display();
 
   Wire.beginTransmission(8);
@@ -631,8 +618,8 @@ void loop(void) {
     //DEBUG_PRINTLN("DISPLAY_ON");
     lcd.backlight();
   } else {
-    DEBUG_PRINTLN("DISPLAY OFF");
-    //lcd.noBacklight();
+    //DEBUG_PRINTLN("DISPLAY OFF");
+    lcd.noBacklight();
   }  
   
   nulStat();
@@ -701,7 +688,7 @@ void sendRelayHA(byte akce) {
   SenderClass sender;
   sender.add("relayChange", akce);
  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  //sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(BUILTIN_LED, HIGH);
 }
 
@@ -739,9 +726,26 @@ bool tempMeas(void *) {
     // // DEBUG_PRINTLN(tempTemp);
     // tempUT[0] = sensor[sensorOrder[0]];
   // }
+  float tempTemp=(float)TEMP_ERR;
+  for (byte j=0;j<10;j++) { //try to read temperature ten times
+    tempTemp = sensorsIN.getTempC(inThermometer);
+    if (tempTemp>=-55) {
+      break;
+    }
+  }
+  tempIN = tempTemp;
+  
+  tempTemp=(float)TEMP_ERR;
+  for (byte j=0;j<10;j++) { //try to read temperature ten times
+    tempTemp = sensorsOUT.getTempC(outThermometer);
+    if (tempTemp>=-55) {
+      break;
+    }
+  }
+  tempOUT = tempTemp;
 
-  tempIN = sensorsIN.getTempCByIndex(0);
-  tempOUT = sensorsOUT.getTempCByIndex(0);
+  DEBUG_PRINTLN(tempIN);
+  DEBUG_PRINTLN(tempOUT);
 
 /*  tempUT[0]=sensorsUT.getTempCByIndex(5);   //obyvak vstup
   tempUT[1]=sensorsUT.getTempCByIndex(4);   //obyvak vystup
@@ -825,7 +829,7 @@ bool tempMeas(void *) {
       // tempUT[9]=sensorsUT.getTempCByIndex(i);
     // }*/
   // }
-
+  firstTempMeasDone = true;
   
   return true;
 
@@ -1540,4 +1544,43 @@ bool calcStat(void *) {  //run each second from timer
     runSecToday ++;
   }
   return true;
+}
+
+void dsInit(void) {
+  sensorsOUT.begin(); 
+  sensorsIN.begin(); 
+  sensorsUT.begin(); 
+  numberOfDevices = sensorsUT.getDeviceCount();
+
+  lcd.setCursor(0,3);
+  lcd.print(numberOfDevices);
+  DEBUG_PRINT(numberOfDevices);
+  
+  if (numberOfDevices==1) {
+    DEBUG_PRINTLN(" sensor found");
+    //lcd.print(F(" sensor found"));
+  } else {
+    DEBUG_PRINTLN(" sensor(s) found");
+    //lcd.print(F(" sensors found"));
+  }
+
+  sensorsIN.getAddress(inThermometer, 0); 
+  sensorsOUT.getAddress(outThermometer, 0); 
+
+  // Loop through each device, print out address
+  for (byte i=0;i<numberOfDevices; i++) {
+      // Search the wire for address
+    if (sensorsUT.getAddress(tempDeviceAddress, i)) {
+      memcpy(tempDeviceAddresses[i],tempDeviceAddress,8);
+    }
+  }
+  sensorsIN.setResolution(TEMPERATURE_PRECISION);
+  sensorsOUT.setResolution(TEMPERATURE_PRECISION);
+  sensorsUT.setResolution(TEMPERATURE_PRECISION);
+  
+  sensorsIN.setWaitForConversion(false);
+  sensorsOUT.setWaitForConversion(false);
+  sensorsUT.setWaitForConversion(false);
+
+  lcd.clear();
 }
