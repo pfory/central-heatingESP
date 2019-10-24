@@ -453,7 +453,7 @@ void setup(void) {
 
 #ifdef beep
   //peep.Delay(100,40,1,255);
-  tone(BUZZERPIN, 5000, 5);
+  //tone(BUZZERPIN, 5000, 5);
 #endif  
   
   keypad.begin();
@@ -569,9 +569,6 @@ void setup(void) {
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
-  
-//  pinMode(PIRPIN, INPUT);
-//  attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
   
   DEBUG_PRINTLN(F("Setup end."));
 }
@@ -712,20 +709,22 @@ bool tempMeas(void *) {
   DEBUG_PRINT(F("Requesting temperatures..."));
   sensorsIN.requestTemperatures(); // Send the command to get temperatures
   sensorsOUT.requestTemperatures(); // Send the command to get temperatures
-//  sensorsUT.requestTemperatures(); // Send the command to get temperatures
+  sensorsUT.requestTemperatures(); // Send the command to get temperatures
   DEBUG_PRINTLN(F("DONE"));
-  // for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
-    // float tempTemp=(float)TEMP_ERR;
-    // for (byte j=0;j<10;j++) { //try to read temperature ten times
-      // tempTemp = sensorsUT.getTempC(utT[i]);
-      // if (tempTemp>=-55) {
-        // break;
-      // }
-    // }
+  
+  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
+    float tempTemp=(float)TEMP_ERR;
+    for (byte j=0;j<10;j++) { //try to read temperature ten times
+      tempTemp = sensorsUT.getTempC(utT[i]);
+      if (tempTemp>=-55) {
+        break;
+      }
+    }
 
-    // // DEBUG_PRINTLN(tempTemp);
-    // tempUT[0] = sensor[sensorOrder[0]];
-  // }
+    // DEBUG_PRINTLN(tempTemp);
+    tempUT[0] = sensor[sensorOrder[0]];
+  }
+  
   float tempTemp=(float)TEMP_ERR;
   for (byte j=0;j<10;j++) { //try to read temperature ten times
     tempTemp = sensorsIN.getTempC(inThermometer);
@@ -1551,18 +1550,6 @@ void dsInit(void) {
   sensorsIN.begin(); 
   sensorsUT.begin(); 
   numberOfDevices = sensorsUT.getDeviceCount();
-
-  lcd.setCursor(0,3);
-  lcd.print(numberOfDevices);
-  DEBUG_PRINT(numberOfDevices);
-  
-  if (numberOfDevices==1) {
-    DEBUG_PRINTLN(" sensor found");
-    //lcd.print(F(" sensor found"));
-  } else {
-    DEBUG_PRINTLN(" sensor(s) found");
-    //lcd.print(F(" sensors found"));
-  }
 
   sensorsIN.getAddress(inThermometer, 0); 
   sensorsOUT.getAddress(outThermometer, 0); 
