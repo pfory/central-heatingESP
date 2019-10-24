@@ -490,7 +490,7 @@ void setup(void) {
       lcd.print(F("!!!DS18B20 found!!!!"));
       lcd.setCursor(0, 3);
       lcd.print(F("!!!!!Check wire!!!!!"));
-      digitalWrite(RELAYPIN, RELAY_ON); //zapnu cerpadlo
+      //digitalWrite(RELAYPIN, RELAY_ON); //zapnu cerpadlo
       //break;
       } else {
       break;
@@ -742,6 +742,8 @@ bool tempMeas(void *) {
     }
   }
   tempOUT = tempTemp;
+  
+  //printTemp();
 
   DEBUG_PRINTLN(tempIN);
   DEBUG_PRINTLN(tempOUT);
@@ -828,10 +830,27 @@ bool tempMeas(void *) {
       // tempUT[9]=sensorsUT.getTempCByIndex(i);
     // }*/
   // }
-  firstTempMeasDone = true;
+
+  //obcas se vyskytne chyba a vsechna cidla prestanou merit
+  //zkusim restartovat sbernici
+  bool reset=false;
+  for (byte i=0; i<sensorsUT.getDeviceCount(); i++) {
+    //if (sensor[i]==0.0 || sensor[i]<-100.0) {
+    if (sensorsUT[i]<-100.0) {
+      reset=true;
+    }
+  }
+  if (tempIN<-100 || tempOUT<-100) {
+    reset= true;
+  }
+  
+  if (reset) {
+    dsInit();
+  } else {
+    firstTempMeasDone = true;
+  }
   
   return true;
-
 }
 
 void printTemp() {
@@ -1549,8 +1568,22 @@ void dsInit(void) {
   sensorsOUT.begin(); 
   sensorsIN.begin(); 
   sensorsUT.begin(); 
-  numberOfDevices = sensorsUT.getDeviceCount();
 
+<<<<<<< HEAD
+=======
+  //lcd.setCursor(0,3);
+  //lcd.print(numberOfDevices);
+  DEBUG_PRINT(numberOfDevices);
+  
+  if (sensorsUT.getDeviceCount()==1) {
+    DEBUG_PRINTLN(" sensor found");
+    //lcd.print(F(" sensor found"));
+  } else {
+    DEBUG_PRINTLN(" sensor(s) found");
+    //lcd.print(F(" sensors found"));
+  }
+
+>>>>>>> 65fae66c117b027eb10bc5b6a8444de7896f1f4d
   sensorsIN.getAddress(inThermometer, 0); 
   sensorsOUT.getAddress(outThermometer, 0); 
 
@@ -1569,5 +1602,5 @@ void dsInit(void) {
   sensorsOUT.setWaitForConversion(false);
   sensorsUT.setWaitForConversion(false);
 
-  lcd.clear();
+  //lcd.clear();
 }
