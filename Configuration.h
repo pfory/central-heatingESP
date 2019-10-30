@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "1.01"
+#define     VERSION                      "1.02"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -115,7 +115,7 @@ static const char* const      mqtt_topic_so12                = "so12";
 #define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
 #define ONE_WIRE_BUS_UT                     D7 //MISO                       GPIO12
 #define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
-#define BUZZERPIN                           D7 //                           GPIO16
+#define BUZZERPIN                           D8 //                           GPIO16
 #define PIRPIN                              D0 //10k Pull-down, SS          GPIO15
 //SDA                                       D2 //                           GPIO4
 //SCL                                       D1 //                           GPIO5
