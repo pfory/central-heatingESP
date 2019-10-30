@@ -1559,21 +1559,14 @@ void dsInit(void) {
   sensorsIN.begin(); 
   sensorsUT.begin(); 
 
-<<<<<<< HEAD
-=======
-  //lcd.setCursor(0,3);
-  //lcd.print(numberOfDevices);
   DEBUG_PRINT(numberOfDevices);
   
   if (sensorsUT.getDeviceCount()==1) {
     DEBUG_PRINTLN(" sensor found");
-    //lcd.print(F(" sensor found"));
   } else {
     DEBUG_PRINTLN(" sensor(s) found");
-    //lcd.print(F(" sensors found"));
   }
 
->>>>>>> 65fae66c117b027eb10bc5b6a8444de7896f1f4d
   sensorsIN.getAddress(inThermometer, 0); 
   sensorsOUT.getAddress(outThermometer, 0); 
 
