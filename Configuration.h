@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "1.02"
+#define     VERSION                      "1.03"
 #define     SW_NAME                      "Central heat"
 
 #define timers
