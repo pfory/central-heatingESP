@@ -35,8 +35,6 @@ float sensor[NUMBER_OF_DEVICES];
 float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
 float                 tempUT[12];              
-const unsigned long   pumpProtect                 = 864000000;  //1000*60*60*24*10; //in ms = 10 day, max 49 days
-const unsigned long   pumpProtectRun              = 300000;     //1000*60*5;     //in ms = 5 min
 bool                  tempRefresh                 = false;
 uint32_t              heartBeat                   = 0;
 float                 temp[15];              
@@ -340,16 +338,8 @@ void setup(void) {
 
   pinMode(RELAYPIN, OUTPUT);
   digitalWrite(RELAYPIN, relayStatus);
-  // delay(3000);
-  // digitalWrite(RELAYPIN, LOW);
   pinMode(BUILTIN_LED, OUTPUT);
-  // digitalWrite(BUILTIN_LED, LOW);
-  // delay(3000);
-  // digitalWrite(BUILTIN_LED, HIGH);
   pinMode(BUZZERPIN, OUTPUT);
-  // digitalWrite(BUZZERPIN, HIGH);
-  // delay(3000);
-  // digitalWrite(BUZZERPIN, LOW);
   pinMode(PIRPIN, INPUT);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
@@ -477,10 +467,10 @@ void setup(void) {
     if (1==0) {
 #else
     if (sensorsIN.getDeviceCount()==0 || sensorsOUT.getDeviceCount()==0) {
-#endif
-#ifdef beep
-      //peep.Delay(100,40,1,255);
-#endif
+    #endif
+    #ifdef beep
+    //peep.Delay(100,40,1,255);
+    #endif
       DEBUG_PRINTLN(F("NO temperature sensor(s) DS18B20 found!!!!!!!!!"));
       DEBUG_PRINTLN(sensorsIN.getDeviceCount());
       DEBUG_PRINTLN(sensorsOUT.getDeviceCount());
@@ -490,9 +480,7 @@ void setup(void) {
       lcd.print(F("!!!DS18B20 found!!!!"));
       lcd.setCursor(0, 3);
       lcd.print(F("!!!!!Check wire!!!!!"));
-      //digitalWrite(RELAYPIN, RELAY_ON); //zapnu cerpadlo
-      //break;
-      } else {
+    } else {
       break;
     }
     delay(2000);
@@ -615,10 +603,8 @@ void loop(void) {
   keyBoard();
   
   if (digitalRead(PIRPIN)==1) {
-    //DEBUG_PRINTLN("DISPLAY_ON");
     lcd.backlight();
   } else {
-    //DEBUG_PRINTLN("DISPLAY OFF");
     lcd.noBacklight();
   }  
   
@@ -630,30 +616,35 @@ void loop(void) {
 
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 void relay() {
-  if (relayStatus == RELAY_OFF && (tempOUT >= SAFETY_ON || tempIN >= SAFETY_ON)) {
+  if (tempIN<-100 || tempOUT<-100) {
     relayStatus = RELAY_ON;
     changeRelay(relayStatus);
-  }
-  if (manualRelay==2) {
-    //-----------------------------------zmena 0-1--------------------------------------------
-    if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
+  } else {
+    if (relayStatus == RELAY_OFF && (tempOUT >= SAFETY_ON || tempIN >= SAFETY_ON)) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-      //lastMillis = millis();
-      sendRelayHA(1);
-    //-----------------------------------zmena 1-0--------------------------------------------
-    } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
-    //} else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
-      relayStatus = RELAY_OFF;
-      changeRelay(relayStatus);
-      sendRelayHA(0);
     }
-  } else if (manualRelay==1) {
-      relayStatus = RELAY_ON;
-      changeRelay(relayStatus);
-  } else if (manualRelay==0) {
-      relayStatus = RELAY_OFF;
-      changeRelay(relayStatus);
+    if (manualRelay==2) {
+      //-----------------------------------zmena 0-1--------------------------------------------
+      if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
+        relayStatus = RELAY_ON;
+        changeRelay(relayStatus);
+        //lastMillis = millis();
+        sendRelayHA(1);
+      //-----------------------------------zmena 1-0--------------------------------------------
+      } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
+      //} else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
+        relayStatus = RELAY_OFF;
+        changeRelay(relayStatus);
+        sendRelayHA(0);
+      }
+    } else if (manualRelay==1) {
+        relayStatus = RELAY_ON;
+        changeRelay(relayStatus);
+    } else if (manualRelay==0) {
+        relayStatus = RELAY_OFF;
+        changeRelay(relayStatus);
+    }
   }
   dispRelayStatus();
 }
@@ -837,7 +828,7 @@ bool tempMeas(void *) {
   bool reset=false;
   for (byte i=0; i<sensorsUT.getDeviceCount(); i++) {
     //if (sensor[i]==0.0 || sensor[i]<-100.0) {
-    if (sensorsUT[i]<-100.0) {
+    if (tempUT[i]<-100.0) {
       reset=true;
     }
   }
@@ -1090,7 +1081,6 @@ void displayTempErr(int x, int y) {
 
 //zabranuje zatuhnuti cerpadla v lete
 void testPumpProtect() {
-  //if (storage.lastPumpRun
 }
 
 
