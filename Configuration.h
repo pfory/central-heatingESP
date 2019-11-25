@@ -19,6 +19,8 @@
 #define HOSTNAMEOTA   "Central"
 #endif
 
+//#define PIR
+
 /*
 --------------------------------------------------------------------------------------------------------------------------
 
@@ -116,7 +118,9 @@ static const char* const      mqtt_topic_so12                = "so12";
 #define ONE_WIRE_BUS_UT                     D7 //MISO                       GPIO12
 #define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
 #define BUZZERPIN                           D8 //                           GPIO16
+#ifdef PIR
 #define PIRPIN                              D0 //10k Pull-down, SS          GPIO15
+#endif
 //SDA                                       D2 //                           GPIO4
 //SCL                                       D1 //                           GPIO5
 //BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO2
