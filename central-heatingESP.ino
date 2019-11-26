@@ -340,7 +340,9 @@ void setup(void) {
   digitalWrite(RELAYPIN, relayStatus);
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(BUZZERPIN, OUTPUT);
+#ifdef PIR
   pinMode(PIRPIN, INPUT);
+#endif
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
   uint8_t _reset_reason = _reset_info->reason;
@@ -599,12 +601,14 @@ void loop(void) {
 #endif  
   keyBoard();
   
+#ifdef PIR
   if (digitalRead(PIRPIN)==1) {
     lcd.backlight();
   } else {
     lcd.noBacklight();
   }  
-  
+#endif
+
   nulStat();
   displayClear();
   
