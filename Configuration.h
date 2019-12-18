@@ -113,13 +113,13 @@ static const char* const      mqtt_topic_so12                = "so12";
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
 #define STATUS_LED                          BUILTIN_LED //status LED
-#define ONE_WIRE_BUS_IN                     D6 //MOSI                       GPIO13
+#define ONE_WIRE_BUS_IN                     D6 //MISO                       GPIO12
 #define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
-#define ONE_WIRE_BUS_UT                     D7 //MISO                       GPIO12
+#define ONE_WIRE_BUS_UT                     D7 //MOSI                       GPIO13
 #define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
-#define BUZZERPIN                           D8 //                           GPIO16
+#define BUZZERPIN                           D8 //                           GPIO15
 #ifdef PIR
-#define PIRPIN                              D0 //10k Pull-down, SS          GPIO15
+#define PIRPIN                              D0 //10k Pull-down, SS          GPIO16
 #endif
 //SDA                                       D2 //                           GPIO4
 //SCL                                       D1 //                           GPIO5
