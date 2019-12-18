@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "1.03"
+#define     VERSION                      "1.05"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -19,7 +19,7 @@
 #define HOSTNAMEOTA   "Central"
 #endif
 
-//#define PIR
+#define PIR
 
 /*
 --------------------------------------------------------------------------------------------------------------------------
