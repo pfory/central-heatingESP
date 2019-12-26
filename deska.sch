@@ -6193,11 +6193,11 @@ Source: www.kingbright.com</description>
 <part name="R7" library="rcl" deviceset="R-EU_" device="0207/7" value="220"/>
 <part name="LED2" library="led" library_urn="urn:adsk.eagle:library:259" deviceset="LED" device="3MM" package3d_urn="urn:adsk.eagle:package:15797/1" value="LED2"/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
-<part name="+3V5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="X7" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-03-PIN" device="-LONG-PAD"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="RESET" library="Rembrandt Electronics - JST XH Connectors v1-0" deviceset="JST-XH-02-PIN" device="-LONG-PAD"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
+<part name="P+3" library="supply1" deviceset="+5V" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -6387,9 +6387,6 @@ Source: www.kingbright.com</description>
 <instance part="GND2" gate="1" x="104.14" y="68.58" smashed="yes">
 <attribute name="VALUE" x="101.6" y="66.04" size="1.778" layer="96"/>
 </instance>
-<instance part="+3V5" gate="G$1" x="43.18" y="25.4" smashed="yes">
-<attribute name="VALUE" x="40.64" y="20.32" size="1.778" layer="96" rot="R90"/>
-</instance>
 <instance part="X7" gate="-1" x="45.72" y="15.24" smashed="yes" rot="R270">
 <attribute name="NAME" x="44.958" y="12.7" size="1.524" layer="95" rot="R270"/>
 <attribute name="VALUE" x="47.117" y="16.002" size="1.778" layer="96" rot="R270"/>
@@ -6412,6 +6409,9 @@ Source: www.kingbright.com</description>
 </instance>
 <instance part="GND7" gate="1" x="43.18" y="73.66" smashed="yes">
 <attribute name="VALUE" x="40.64" y="71.12" size="1.778" layer="96"/>
+</instance>
+<instance part="P+3" gate="1" x="43.18" y="25.4" smashed="yes">
+<attribute name="VALUE" x="40.64" y="20.32" size="1.778" layer="96" rot="R90"/>
 </instance>
 </instances>
 <busses>
@@ -6600,6 +6600,11 @@ Source: www.kingbright.com</description>
 <wire x1="106.68" y1="55.88" x2="106.68" y2="53.34" width="0.1524" layer="91"/>
 <junction x="106.68" y="53.34"/>
 </segment>
+<segment>
+<wire x1="43.18" y1="22.86" x2="43.18" y2="17.78" width="0.1524" layer="91"/>
+<pinref part="X7" gate="-2" pin="S"/>
+<pinref part="P+3" gate="1" pin="+5V"/>
+</segment>
 </net>
 <net name="N$7" class="0">
 <segment>
@@ -6686,11 +6691,6 @@ Source: www.kingbright.com</description>
 <pinref part="X1" gate="-2" pin="S"/>
 <pinref part="X2" gate="-2" pin="S"/>
 <pinref part="X3" gate="-2" pin="S"/>
-</segment>
-<segment>
-<pinref part="+3V5" gate="G$1" pin="+3V3"/>
-<wire x1="43.18" y1="22.86" x2="43.18" y2="17.78" width="0.1524" layer="91"/>
-<pinref part="X7" gate="-2" pin="S"/>
 </segment>
 </net>
 <net name="N$4" class="0">

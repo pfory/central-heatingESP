@@ -956,7 +956,7 @@ bool sendStatisticHA(void *) {
   SenderClass sender;
   sender.add("VersionSWCentral",  VERSION);
   sender.add("HeartBeat",         heartBeat++);
-  sender.add("RSSI",              WiFi.RSSI());
+  if (heartBeat % 10 == 0) sender.add("RSSI",              WiFi.RSSI());
   sender.add("tempON",            storage.tempON);
   sender.add("tempDiff",          storage.tempOFFDiff);
   
