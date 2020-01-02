@@ -47,7 +47,6 @@ uint32_t              runSecToday                  = 0;
 bool                  todayClear                  = false;
 bool                  dispClear                   = false;
 
-
 //#define SIMTEMP
 
 #define time
@@ -189,28 +188,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lcd.write(byte(0));
     lcd.print("C");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str())==0) {
-  //} else if (strcmp(topic, mqtt_topic_setTempON)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature for ON: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempON = val.toInt();
     saveConfig();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str())==0) {
-  //} else if (strcmp(topic, mqtt_topic_setTempOFFDiff)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature diff for OFF: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempOFFDiff = val.toInt();
     saveConfig();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str())==0) {
-  //} else if (strcmp(topic, mqtt_topic_setTempAlarm)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set alerm temperature: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempAlarm = val.toInt();
     saveConfig();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_sendSO)).c_str())==0) {
-   //} else if (strcmp(topic, mqtt_topic_sendSO)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("send sensor order");
     void * a;
@@ -548,9 +543,9 @@ void setup(void) {
   timer.every(SEND_DELAY,     sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
   timer.every(MEAS_DELAY,     tempMeas);
-  timer.every(1000, calcStat);
+  timer.every(1000,           calcStat);
 #ifdef time  
-  timer.every(500, displayTime);
+  timer.every(500,            displayTime);
 #endif
   void * a;
   sendStatisticHA(a);
@@ -578,10 +573,6 @@ void loop(void) {
   client.loop();
 
   display();
-
-  Wire.beginTransmission(8);
-  Wire.write((byte)tempOUT);
-  Wire.endTransmission();
 
   if (tempOUT >= storage.tempAlarm) {
 #ifdef beep    
@@ -963,9 +954,11 @@ bool sendStatisticHA(void *) {
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
 
   SenderClass sender;
-  sender.add("VersionSWCentral", VERSION);
-  sender.add("HeartBeat", heartBeat++);
-  sender.add("RSSI", WiFi.RSSI());
+  sender.add("VersionSWCentral",  VERSION);
+  sender.add("HeartBeat",         heartBeat++);
+  if (heartBeat % 10 == 0) sender.add("RSSI",              WiFi.RSSI());
+  sender.add("tempON",            storage.tempON);
+  sender.add("tempDiff",          storage.tempOFFDiff);
   
   DEBUG_PRINTLN(F("Calling MQTT"));
   
@@ -1307,9 +1300,13 @@ void printSystemTime(){
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
   char buffer[6];
+  Wire.beginTransmission(8);
+  Wire.write((byte)tempOUT);
+  Wire.endTransmission();
   if (showDoubleDot) {
     sprintf(buffer, "%02d:%02d", hour(), minute());
   } else {
+    Wire.write(byte(0));
     sprintf(buffer, "%02d %02d", hour(), minute());
   }
   lcd.print(buffer);
@@ -1414,19 +1411,19 @@ bool saveConfig() {
 
   StaticJsonDocument<1024> doc;
 
-  doc["tempON"]         = storage.tempON;
-  doc["tempOFFDiff"]    = storage.tempOFFDiff;
-  doc["tempAlarm"]      = storage.tempAlarm;
-  doc["sensorOrder[0]"]          = sensorOrder[0];
-  doc["sensorOrder[1]"]          = sensorOrder[1];
-  doc["sensorOrder[2]"]          = sensorOrder[2];
-  doc["sensorOrder[3]"]          = sensorOrder[3];
-  doc["sensorOrder[4]"]          = sensorOrder[4];
-  doc["sensorOrder[5]"]          = sensorOrder[5];
-  doc["sensorOrder[6]"]          = sensorOrder[6];
-  doc["sensorOrder[7]"]          = sensorOrder[7];
-  doc["sensorOrder[8]"]          = sensorOrder[8];
-  doc["sensorOrder[9]"]          = sensorOrder[9];
+  doc["tempON"]                   = storage.tempON;
+  doc["tempOFFDiff"]              = storage.tempOFFDiff;
+  doc["tempAlarm"]                = storage.tempAlarm;
+  doc["sensorOrder[0]"]           = sensorOrder[0];
+  doc["sensorOrder[1]"]           = sensorOrder[1];
+  doc["sensorOrder[2]"]           = sensorOrder[2];
+  doc["sensorOrder[3]"]           = sensorOrder[3];
+  doc["sensorOrder[4]"]           = sensorOrder[4];
+  doc["sensorOrder[5]"]           = sensorOrder[5];
+  doc["sensorOrder[6]"]           = sensorOrder[6];
+  doc["sensorOrder[7]"]           = sensorOrder[7];
+  doc["sensorOrder[8]"]           = sensorOrder[8];
+  doc["sensorOrder[9]"]           = sensorOrder[9];
   doc["sensorOrder[10]"]          = sensorOrder[10];
   doc["sensorOrder[11]"]          = sensorOrder[11];
   doc["sensorOrder[12]"]          = sensorOrder[12];
