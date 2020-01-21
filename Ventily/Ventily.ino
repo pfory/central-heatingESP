@@ -46,6 +46,10 @@ int stavPredValve5      = 0;
 int stavCLK             = 0;
 int stavPred            = 0;
 
+int valve1Set           = 0;
+bool change             = false;
+int changeValve         = 0;
+
 uint32_t              heartBeat                   = 0;
 
 
@@ -93,6 +97,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve1)).c_str())==0) {
+    DEBUG_PRINT("set valve1 to ");
+    valve1Set = val.toInt();
+    change = true;
+    changeValve = 1;
+    if (val.toInt()==1) {
+      DEBUG_PRINTLN(F("ON"));
+    } else if (val.toInt()==0) {
+      DEBUG_PRINTLN(F("OFF"));
+    }
   }
 }
 
@@ -220,6 +234,22 @@ void loop() {
   }
   client.loop();
 
+  if (change) {
+    if (changeValve == 1) {
+      if (valve1Set == 0) {
+      //close
+        Serial.print("Zavirani ventilu ");
+        poziceEnkod = 0;
+        stavPred = getStavPred(1);
+      } else {
+        //open
+        Serial.print("Otevirani ventilu ");
+        poziceEnkod = 0;
+        stavPred = getStavPred(1);
+      }
+    }
+    change = false;
+  }
   if (Serial.available() > 0) {
     int incomingByte = Serial.read();
 
@@ -288,6 +318,7 @@ void reconnect() {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
       client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "valve1").c_str());
     } else {
       DEBUG_PRINT("failed, rc=");
       DEBUG_PRINT(client.state());

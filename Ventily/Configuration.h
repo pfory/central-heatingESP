@@ -55,6 +55,7 @@ static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
 static const char* const      mqtt_topic_restart             = "restart";
+static const char* const      mqtt_topic_valve1              = "valve1";
 
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
