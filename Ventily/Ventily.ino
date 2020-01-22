@@ -19,6 +19,7 @@ PCF8574 PCF_02(0x21);
 //PCF-01
 int pinCLKValve1        = 0;
 int pinDTValve1         = 1;
+int pinPolarityRelay    = 2;
 int pinCLKValve2        = 2;
 int pinDTValve2         = 3;
 int pinCLKValve3        = 4;
@@ -28,7 +29,7 @@ int pinDTValve4         = 7;
 //PCF-02        
 int pinCLKValve5        = 0;
 int pinDTValve5         = 1;
-int pinPolarityRelay    = 2;
+//int pinPolarityRelay    = 2;
 int pinrelayValve1      = 3;
 int pinrelayValve2      = 4;
 int pinrelayValve3      = 5;
@@ -181,7 +182,7 @@ void setup() {
   } 
 
 #ifdef ota
-  ArduinoOTA.setHostname("Central heating");
+  ArduinoOTA.setHostname(HOSTNAMEOTA);
 
   ArduinoOTA.onStart([]() {
     DEBUG_PRINTLN("Start updating ");
@@ -194,11 +195,11 @@ void setup() {
   });
   ArduinoOTA.onError([](ota_error_t error) {
     DEBUG_PRINTF("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    if (error == OTA_AUTH_ERROR) DEBUG_PRINTLN("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) DEBUG_PRINTLN("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) DEBUG_PRINTLN("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) DEBUG_PRINTLN("Receive Failed");
+    else if (error == OTA_END_ERROR) DEBUG_PRINTLN("End Failed");
   });
   ArduinoOTA.begin();
 #endif
@@ -213,6 +214,11 @@ void setup() {
   stavPredValve5 = PCF_02.read(pinCLKValve5);
   
   timer.every(800, checkStatus);
+  
+  timer.every(SENDSTAT_DELAY, sendStatisticHA);
+  void * a;
+  sendStatisticHA(a);
+
 
   ticker.detach();
   //keep LED on
@@ -235,32 +241,33 @@ void loop() {
   client.loop();
 
   if (change) {
+    change = false;
+    ticker.attach(1, tick);
     if (changeValve == 1) {
       if (valve1Set == 0) {
       //close
-        Serial.print("Zavirani ventilu ");
+        DEBUG_PRINT("Zavirani ventilu ");
         poziceEnkod = 0;
         stavPred = getStavPred(1);
       } else {
         //open
-        Serial.print("Otevirani ventilu ");
+        DEBUG_PRINT("Otevirani ventilu ");
         poziceEnkod = 0;
         stavPred = getStavPred(1);
       }
     }
-    change = false;
   }
   if (Serial.available() > 0) {
     int incomingByte = Serial.read();
 
     if (incomingByte == 48) {
       //close
-      Serial.print("Zavirani ventilu ");
+      DEBUG_PRINT("Zavirani ventilu ");
       poziceEnkod = 0;
       stavPred = getStavPred(1);
     } else if (incomingByte == 49) {
       //open
-      Serial.print("Otevirani ventilu ");
+      DEBUG_PRINT("Otevirani ventilu ");
       poziceEnkod = 0;
       stavPred = getStavPred(1);
     } else {
@@ -275,7 +282,7 @@ void loop() {
     } else {
       poziceEnkod--;
     }
-    Serial.print(".");
+    DEBUG_PRINT(".");
   }
   stavPred = stavCLK;
 }
@@ -283,8 +290,9 @@ void loop() {
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 bool checkStatus(void *) {
   if (poziceEnkod == poziceEnkodOld) {
-      PCF_01.write(pinPolarityRelay,  HIGH);
-      PCF_01.write(pinDTValve1,    LOW);
+    PCF_01.write(pinPolarityRelay,  HIGH);
+    PCF_01.write(pinDTValve1,        LOW);
+    ticker.detach();
   } else {
     poziceEnkodOld = poziceEnkod;
   }
@@ -328,3 +336,32 @@ void reconnect() {
     }
   }
 }
+
+bool sendDataHA(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  SenderClass sender;
+  DEBUG_PRINTLN(F(" - I am sending data to HA"));
+
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
+bool sendStatisticHA(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  //printSystemTime();
+  DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+
+  SenderClass sender;
+  sender.add("VersionSWVentily",  VERSION);
+  sender.add("HeartBeat",         heartBeat++);
+  if (heartBeat % 10 == 0) sender.add("RSSI",              WiFi.RSSI());
+  
+  DEBUG_PRINTLN(F("Calling MQTT"));
+  
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
