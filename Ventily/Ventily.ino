@@ -20,22 +20,21 @@ PCF8574 PCF_02(0x21);
 int pinCLKValve1        = 0;
 int pinDTValve1         = 1;
 int pinPolarityRelay    = 2;
-int pinCLKValve2        = 2;
-int pinDTValve2         = 3;
-int pinCLKValve3        = 4;
-int pinDTValve3         = 5;
-int pinCLKValve4        = 6;
-int pinDTValve4         = 7;
-//PCF-02        
-int pinCLKValve5        = 0;
-int pinDTValve5         = 1;
-//int pinPolarityRelay    = 2;
-int pinrelayValve1      = 3;
-int pinrelayValve2      = 4;
-int pinrelayValve3      = 5;
-int pinrelayValve4      = 6;
-int pinrelayValve5      = 7;
-
+int pinRelayValve1      = 3;
+int pinCLKValve2        = 4;
+int pinDTValve2         = 5;
+int pinRelayValve2      = 6;
+int pinCLKValve3        = 7;
+//PCF-02
+int pinDTValve3         = 0;
+int pinRelayValve3      = 1;
+int pinCLKValve4        = 2;
+int pinDTValve4         = 3;
+int pinRelayValve4      = 4;
+int pinCLKValve5        = 5;
+int pinDTValve5         = 6;
+int pinRelayValve5      = 7;
+//PCF-03
 
 int poziceEnkod         = 0;
 int poziceEnkodOld      = 0;
@@ -245,15 +244,17 @@ void loop() {
     ticker.attach(1, tick);
     if (changeValve == 1) {
       if (valve1Set == 0) {
-      //close
-        DEBUG_PRINT("Zavirani ventilu ");
+        //close
+        Serial.println("Zavirani ventilu ");
+        PCF_01.write(pinPolarityRelay,  HIGH);
+        PCF_01.write(pinRelayValve1,    HIGH);
         poziceEnkod = 0;
-        stavPred = getStavPred(1);
       } else {
         //open
-        DEBUG_PRINT("Otevirani ventilu ");
+        Serial.println("Otevirani ventilu ");
+        PCF_01.write(pinPolarityRelay,   LOW);
+        PCF_01.write(pinRelayValve1,    HIGH);
         poziceEnkod = 0;
-        stavPred = getStavPred(1);
       }
     }
   }
@@ -262,15 +263,18 @@ void loop() {
 
     if (incomingByte == 48) {
       //close
-      DEBUG_PRINT("Zavirani ventilu ");
+      Serial.println("Zavirani ventilu ");
+      PCF_01.write(pinPolarityRelay,  HIGH);
+      PCF_01.write(pinRelayValve1,    HIGH);
       poziceEnkod = 0;
-      stavPred = getStavPred(1);
     } else if (incomingByte == 49) {
       //open
-      DEBUG_PRINT("Otevirani ventilu ");
+      Serial.println("Otevirani ventilu ");
+      PCF_01.write(pinPolarityRelay,   LOW);
+      PCF_01.write(pinRelayValve1,    HIGH);
       poziceEnkod = 0;
-      stavPred = getStavPred(1);
     } else {
+      // digitalWrite(D3, LOW);
     }
    }
     
@@ -290,9 +294,8 @@ void loop() {
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 bool checkStatus(void *) {
   if (poziceEnkod == poziceEnkodOld) {
-    PCF_01.write(pinPolarityRelay,  HIGH);
-    PCF_01.write(pinDTValve1,        LOW);
-    ticker.detach();
+    PCF_01.write(pinPolarityRelay,     HIGH);
+    PCF_01.write(pinRelayValve1,        LOW);
   } else {
     poziceEnkodOld = poziceEnkod;
   }
@@ -308,14 +311,14 @@ int getStavCLK(int valve) {
   else { return 0; }
 }
 
-int getStavPred(int valve) {
-  if (valve == 1) { return stavPredValve1; }
-  else if (valve == 2) { return stavPredValve2; }
-  else if (valve == 3) { return stavPredValve3; }
-  else if (valve == 4) { return stavPredValve4; }
-  else if (valve == 5) { return stavPredValve5; }
-  else { return 0; }
-}
+// int getStavPred(int valve) {
+  // if (valve == 1) { return stavPredValve1; }
+  // else if (valve == 2) { return stavPredValve2; }
+  // else if (valve == 3) { return stavPredValve3; }
+  // else if (valve == 4) { return stavPredValve4; }
+  // else if (valve == 5) { return stavPredValve5; }
+  // else { return 0; }
+// }
 
 void reconnect() {
   // Loop until we're reconnected
