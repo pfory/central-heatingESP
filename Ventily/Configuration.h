@@ -5,6 +5,9 @@
 #define     VERSION                      "0.01"
 #define     SW_NAME                      "Ventily"
 
+/////////////////////////////////////////////////////
+enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
+
 #define timers
 #define ota
 #define verbose
@@ -75,6 +78,9 @@ static const char* const      mqtt_topic_valve1              = "valve1";
 
 #define RELAY_ON                            LOW
 #define RELAY_OFF                           HIGH
+
+#define OPEN                                1
+#define CLOSE                               0
 
 
 #define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms

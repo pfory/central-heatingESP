@@ -16,39 +16,40 @@ PCF8574 PCF_02(0x21);
 
 // Rotační enkodér KY-040
 
-//PCF-01
-int pinCLKValve1        = 0;
-int pinDTValve1         = 1;
-int pinPolarityRelay    = 2;
-int pinRelayValve1      = 3;
-int pinCLKValve2        = 4;
-int pinDTValve2         = 5;
-int pinRelayValve2      = 6;
-int pinCLKValve3        = 7;
-//PCF-02
-int pinDTValve3         = 0;
-int pinRelayValve3      = 1;
-int pinCLKValve4        = 2;
-int pinDTValve4         = 3;
-int pinRelayValve4      = 4;
-int pinCLKValve5        = 5;
-int pinDTValve5         = 6;
-int pinRelayValve5      = 7;
-//PCF-03
-
-int poziceEnkod         = 0;
-int poziceEnkodOld      = 0;
-int stavPredValve1      = 0;
-int stavPredValve2      = 0;
-int stavPredValve3      = 0;
-int stavPredValve4      = 0;
-int stavPredValve5      = 0;
-int stavCLK             = 0;
-int stavPred            = 0;
-
-int valve1Set           = 0;
-bool change             = false;
-int changeValve         = 0;
+//PCF-01                           
+int pinCLKValve1                                  = 0;
+int pinDTValve1                                   = 1;
+int pinPolarityRelay                              = 2;
+int pinRelayValve1                                = 3;
+int pinCLKValve2                                  = 4;
+int pinDTValve2                                   = 5;
+int pinRelayValve2                                = 6;
+int pinCLKValve3                                  = 7;
+//PCF-02                           
+int pinDTValve3                                   = 0;
+int pinRelayValve3                                = 1;
+int pinCLKValve4                                  = 2;
+int pinDTValve4                                   = 3;
+int pinRelayValve4                                = 4;
+int pinCLKValve5                                  = 5;
+int pinDTValve5                                   = 6;
+int pinRelayValve5                                = 7;
+//PCF-03                           
+                           
+int poziceEnkod                                   = 0;
+int poziceEnkodOld                                = 0;
+int stavPredValve1                                = 0;
+int stavPredValve2                                = 0;
+int stavPredValve3                                = 0;
+int stavPredValve4                                = 0;
+int stavPredValve5                                = 0;
+int stavCLK                                       = 0;
+int stavPred                                      = 0;
+                           
+int valve1Set                                     = 0;
+bool change                                       = false;
+int changeValve                                   = 0;
+int activeValve                                   ;
 
 uint32_t              heartBeat                   = 0;
 
@@ -209,7 +210,7 @@ void setup() {
   stavPredValve1 = PCF_01.read(pinCLKValve1);
   stavPredValve2 = PCF_01.read(pinCLKValve2);
   stavPredValve3 = PCF_01.read(pinCLKValve3);
-  stavPredValve4 = PCF_01.read(pinCLKValve4);
+  stavPredValve4 = PCF_02.read(pinCLKValve4);
   stavPredValve5 = PCF_02.read(pinCLKValve5);
   
   timer.every(800, checkStatus);
@@ -224,6 +225,8 @@ void setup() {
   digitalWrite(BUILTIN_LED, HIGH);
   
   DEBUG_PRINTLN(F("Setup end."));
+  
+  activeValve = SOLAROUT;
 }
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
@@ -246,15 +249,15 @@ void loop() {
       if (valve1Set == 0) {
         //close
         Serial.println("Zavirani ventilu ");
-        PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve1,    HIGH);
-        poziceEnkod = 0;
+        start(CLOSE);
+        // PCF_01.write(pinPolarityRelay,  HIGH);
+        // PCF_01.write(pinRelayValve1,    HIGH);
       } else {
         //open
         Serial.println("Otevirani ventilu ");
-        PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve1,    HIGH);
-        poziceEnkod = 0;
+        start(OPEN);
+        // PCF_01.write(pinPolarityRelay,   LOW);
+        // PCF_01.write(pinRelayValve1,    HIGH);
       }
     }
   }
@@ -264,24 +267,31 @@ void loop() {
     if (incomingByte == 48) {
       //close
       Serial.println("Zavirani ventilu ");
-      PCF_01.write(pinPolarityRelay,  HIGH);
-      PCF_01.write(pinRelayValve1,    HIGH);
-      poziceEnkod = 0;
+      start(CLOSE);
+      // PCF_01.write(pinPolarityRelay,  HIGH);
+      // PCF_01.write(pinRelayValve1,    HIGH);
     } else if (incomingByte == 49) {
       //open
       Serial.println("Otevirani ventilu ");
-      PCF_01.write(pinPolarityRelay,   LOW);
-      PCF_01.write(pinRelayValve1,    HIGH);
-      poziceEnkod = 0;
+      start(OPEN);
+      // PCF_01.write(pinPolarityRelay,   LOW);
+      // PCF_01.write(pinRelayValve1,    HIGH);
     } else {
       // digitalWrite(D3, LOW);
     }
    }
     
     
-  stavCLK = getStavCLK(1);
+  stavCLK = getStavCLK();
   if (stavCLK != stavPred) {
-    if (PCF_01.read(pinDTValve1) != stavCLK) {
+    int valve;
+    if (activeValve == SOLAROUT) valve = pinDTValve1;
+    if (activeValve == SOLARIN) valve = pinDTValve2;
+    if (activeValve == RADIATOR) valve = pinDTValve3;
+    if (activeValve == BOJLERIN) valve = pinDTValve4;
+    if (activeValve == BOJLEROUT) valve = pinDTValve5;
+  
+    if (PCF_01.read(valve) != stavCLK) {
       poziceEnkod++;
     } else {
       poziceEnkod--;
@@ -302,13 +312,29 @@ bool checkStatus(void *) {
   return true;
 }
 
-int getStavCLK(int valve) {
-  if (valve == 1) { return PCF_01.read(pinCLKValve1); }
-  else if (valve == 2) { return PCF_01.read(pinCLKValve2); }
-  else if (valve == 3) { return PCF_01.read(pinCLKValve3); }
-  else if (valve == 4) { return PCF_01.read(pinCLKValve4); }
-  else if (valve == 5) { return PCF_02.read(pinCLKValve5); }
+int getStavCLK() {
+  if      (activeValve == SOLAROUT) { return PCF_01.read(pinCLKValve1); }
+  else if (activeValve == 2) { return PCF_01.read(pinCLKValve2); }
+  else if (activeValve == 3) { return PCF_01.read(pinCLKValve3); }
+  else if (activeValve == 4) { return PCF_01.read(pinCLKValve4); }
+  else if (activeValve == 5) { return PCF_02.read(pinCLKValve5); }
   else { return 0; }
+}
+
+void start(int action) {
+  if (action == CLOSE) {
+    PCF_01.write(pinPolarityRelay,  HIGH);
+  }
+  if (action == OPEN) {
+    PCF_01.write(pinPolarityRelay,   LOW);
+  }
+  if (activeValve == SOLAROUT) PCF_01.write(pinRelayValve1,    HIGH);
+  if (activeValve == 2) PCF_01.write(pinRelayValve2,    HIGH);
+  if (activeValve == 3) PCF_02.write(pinRelayValve3,    HIGH);
+  if (activeValve == 4) PCF_02.write(pinRelayValve4,    HIGH);
+  if (activeValve == 5) PCF_02.write(pinRelayValve5,    HIGH);
+
+  poziceEnkod = 0;
 }
 
 // int getStavPred(int valve) {
