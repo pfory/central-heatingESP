@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.01"
+#define     VERSION                      "0.02"
 #define     SW_NAME                      "Ventily"
 
 #define timers
@@ -56,7 +56,12 @@ static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_valve1              = "valve1";
+static const char* const      mqtt_topic_valve2              = "valve2";
+static const char* const      mqtt_topic_valve3              = "valve3";
+static const char* const      mqtt_topic_valve4              = "valve4";
+static const char* const      mqtt_topic_valve5              = "valve5";
 
+static const char* const      mqtt_topic_valveStop           = "valveStop";
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
 #define STATUS_LED                          BUILTIN_LED //status LED

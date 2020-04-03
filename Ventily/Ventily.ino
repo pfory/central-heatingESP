@@ -17,23 +17,23 @@ PCF8574 PCF_02(0x21);
 // Rotační enkodér KY-040
 
 //PCF-01
-int pinCLKValve1        = 0;
-int pinDTValve1         = 1;
-int pinPolarityRelay    = 2;
-int pinRelayValve1      = 3;
-int pinCLKValve2        = 4;
-int pinDTValve2         = 5;
-int pinRelayValve2      = 6;
-int pinCLKValve3        = 7;
-//PCF-02
-int pinDTValve3         = 0;
-int pinRelayValve3      = 1;
-int pinCLKValve4        = 2;
-int pinDTValve4         = 3;
+int pinPolarityRelay    = 0;
+int pinRelayValve1      = 1;
+int pinRelayValve2      = 2;
+int pinRelayValve3      = 3;
 int pinRelayValve4      = 4;
-int pinCLKValve5        = 5;
-int pinDTValve5         = 6;
-int pinRelayValve5      = 7;
+int pinRelayValve5      = 5;
+int pinCLKValve1        = 6;
+int pinDTValve1         = 7;
+//PCF-02
+int pinCLKValve2        = 0;
+int pinDTValve2         = 1;
+int pinCLKValve3        = 2;
+int pinDTValve3         = 3;
+int pinCLKValve4        = 4;
+int pinDTValve4         = 5;
+int pinCLKValve5        = 6;
+int pinDTValve5         = 7;
 //PCF-03
 
 int poziceEnkod         = 0;
@@ -47,6 +47,10 @@ int stavCLK             = 0;
 int stavPred            = 0;
 
 int valve1Set           = 0;
+int valve2Set           = 0;
+int valve3Set           = 0;
+int valve4Set           = 0;
+int valve5Set           = 0;
 bool change             = false;
 int changeValve         = 0;
 
@@ -100,14 +104,42 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve1)).c_str())==0) {
     DEBUG_PRINT("set valve1 to ");
     valve1Set = val.toInt();
-    change = true;
+    setValve(valve1Set);
     changeValve = 1;
-    if (val.toInt()==1) {
-      DEBUG_PRINTLN(F("ON"));
-    } else if (val.toInt()==0) {
-      DEBUG_PRINTLN(F("OFF"));
-    }
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve2)).c_str())==0) {
+    DEBUG_PRINT("set valve2 to ");
+    valve2Set = val.toInt();
+    setValve(valve2Set);
+    changeValve = 2;
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve3)).c_str())==0) {
+    DEBUG_PRINT("set valve3 to ");
+    valve3Set = val.toInt();
+    setValve(valve3Set);
+    changeValve = 3;
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve4)).c_str())==0) {
+    DEBUG_PRINT("set valve4 to ");
+    valve4Set = val.toInt();
+    setValve(valve4Set);
+    changeValve = 4;
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve5)).c_str())==0) {
+    DEBUG_PRINT("set valve5 to ");
+    valve5Set = val.toInt();
+    setValve(valve5Set);
+    changeValve = 5;
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valveStop)).c_str())==0) {
+    DEBUG_PRINT("stop valve");
+    valveStop();
   }
+}
+
+
+void setValve(int val) {
+  change = true;
+	if (val==1) {
+	  DEBUG_PRINTLN(F("ON"));
+	} else if (val==0) {
+	  DEBUG_PRINTLN(F("OFF"));
+	}
 }
 
 bool isDebugEnabled()
@@ -242,18 +274,75 @@ void loop() {
   if (change) {
     change = false;
     ticker.attach(1, tick);
+
     if (changeValve == 1) {
       if (valve1Set == 0) {
         //close
         Serial.println("Zavirani ventilu ");
         PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve1,    HIGH);
+        PCF_01.write(pinRelayValve1,    LOW);
         poziceEnkod = 0;
       } else {
         //open
         Serial.println("Otevirani ventilu ");
         PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve1,    HIGH);
+        PCF_01.write(pinRelayValve1,    LOW);
+        poziceEnkod = 0;
+      }
+    } else if (changeValve == 2) {
+      if (valve2Set == 0) {
+        //close
+        Serial.println("Zavirani ventilu ");
+        PCF_01.write(pinPolarityRelay,  HIGH);
+        PCF_01.write(pinRelayValve2,    LOW);
+        poziceEnkod = 0;
+      } else {
+        //open
+        Serial.println("Otevirani ventilu ");
+        PCF_01.write(pinPolarityRelay,   LOW);
+        PCF_01.write(pinRelayValve2,    LOW);
+        poziceEnkod = 0;
+      }
+    } else if (changeValve == 3) {
+      if (valve3Set == 0) {
+        //close
+        Serial.println("Zavirani ventilu ");
+        PCF_01.write(pinPolarityRelay,  HIGH);
+        PCF_01.write(pinRelayValve3,    LOW);
+        poziceEnkod = 0;
+      } else {
+        //open
+        Serial.println("Otevirani ventilu ");
+        PCF_01.write(pinPolarityRelay,   LOW);
+        PCF_01.write(pinRelayValve3,    LOW);
+        poziceEnkod = 0;
+      }
+    } else if (changeValve == 4) {
+      if (valve4Set == 0) {
+        //close
+        Serial.println("Zavirani ventilu ");
+        PCF_01.write(pinPolarityRelay,  HIGH);
+        PCF_01.write(pinRelayValve4,    LOW);
+        poziceEnkod = 0;
+      } else {
+        //open
+        Serial.println("Otevirani ventilu ");
+        PCF_01.write(pinPolarityRelay,   LOW);
+        PCF_01.write(pinRelayValve4,    LOW);
+        poziceEnkod = 0;
+      }
+    } else if (changeValve == 5) {
+      if (valve5Set == 0) {
+        //close
+        Serial.println("Zavirani ventilu ");
+        PCF_01.write(pinPolarityRelay,  HIGH);
+        PCF_01.write(pinRelayValve5,    LOW);
+        poziceEnkod = 0;
+      } else {
+        //open
+        Serial.println("Otevirani ventilu ");
+        PCF_01.write(pinPolarityRelay,   LOW);
+        PCF_01.write(pinRelayValve5,    LOW);
         poziceEnkod = 0;
       }
     }
@@ -265,13 +354,33 @@ void loop() {
       //close
       Serial.println("Zavirani ventilu ");
       PCF_01.write(pinPolarityRelay,  HIGH);
-      PCF_01.write(pinRelayValve1,    HIGH);
+      if (changeValve == 1) {
+        PCF_01.write(pinRelayValve1,    LOW);
+      } else if (changeValve == 2) {
+        PCF_01.write(pinRelayValve2,    LOW);
+      } else if (changeValve == 3) {
+        PCF_01.write(pinRelayValve3,    LOW);
+      } else if (changeValve == 4) {
+        PCF_01.write(pinRelayValve4,    LOW);
+      } else if (changeValve == 5) {
+        PCF_01.write(pinRelayValve5,    LOW);
+      }
       poziceEnkod = 0;
     } else if (incomingByte == 49) {
       //open
       Serial.println("Otevirani ventilu ");
       PCF_01.write(pinPolarityRelay,   LOW);
-      PCF_01.write(pinRelayValve1,    HIGH);
+      if (changeValve == 1) {
+        PCF_01.write(pinRelayValve1,    LOW);
+      } else if (changeValve == 2) {
+        PCF_01.write(pinRelayValve2,    LOW);
+      } else if (changeValve == 3) {
+        PCF_01.write(pinRelayValve3,    LOW);
+      } else if (changeValve == 4) {
+        PCF_01.write(pinRelayValve4,    LOW);
+      } else if (changeValve == 5) {
+        PCF_01.write(pinRelayValve5,    LOW);
+      }
       poziceEnkod = 0;
     } else {
       // digitalWrite(D3, LOW);
@@ -294,12 +403,25 @@ void loop() {
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 bool checkStatus(void *) {
   if (poziceEnkod == poziceEnkodOld) {
-    PCF_01.write(pinPolarityRelay,     HIGH);
-    PCF_01.write(pinRelayValve1,        LOW);
+    // PCF_01.write(pinPolarityRelay,      HIGH);
+    // PCF_01.write(pinRelayValve1,        HIGH);
+    // PCF_01.write(pinRelayValve2,        HIGH);
+    // PCF_01.write(pinRelayValve3,        HIGH);
+    // PCF_01.write(pinRelayValve4,        HIGH);
+    // PCF_01.write(pinRelayValve5,        HIGH);
   } else {
     poziceEnkodOld = poziceEnkod;
   }
   return true;
+}
+
+void valveStop() {
+  PCF_01.write(pinPolarityRelay,      HIGH);
+  PCF_01.write(pinRelayValve1,        HIGH);
+  PCF_01.write(pinRelayValve2,        HIGH);
+  PCF_01.write(pinRelayValve3,        HIGH);
+  PCF_01.write(pinRelayValve4,        HIGH);
+  PCF_01.write(pinRelayValve5,        HIGH);
 }
 
 int getStavCLK(int valve) {
@@ -328,8 +450,13 @@ void reconnect() {
     if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
-      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "valve1").c_str());
+       client.subscribe((String(mqtt_base) + "/#").c_str());
+      // client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+      // client.subscribe((String(mqtt_base) + "/" + "valve1").c_str());
+      // client.subscribe((String(mqtt_base) + "/" + "valve2").c_str());
+      // client.subscribe((String(mqtt_base) + "/" + "valve3").c_str());
+      // client.subscribe((String(mqtt_base) + "/" + "valve4").c_str());
+      // client.subscribe((String(mqtt_base) + "/" + "valve5").c_str());
     } else {
       DEBUG_PRINT("failed, rc=");
       DEBUG_PRINT(client.state());
