@@ -7,10 +7,6 @@ GIT - https://github.com/pfory/central-heatingESP
 
 #include "Configuration.h"
 
-
-#include "PCF8574.h"
-#include <Wire.h>
-
 PCF8574 PCF_01(0x20);
 PCF8574 PCF_02(0x21);
 
@@ -18,6 +14,7 @@ PCF8574 PCF_02(0x21);
 1x Wemos D1
 2x I2C expander PCF8574
 5x Rotační enkodér KY-040
+5x motor
 1x relay module 8 channel
 
 */
