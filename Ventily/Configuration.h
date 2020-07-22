@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.01"
+#define     VERSION                      "0.02"
 #define     SW_NAME                      "Ventily"
 
 /////////////////////////////////////////////////////
@@ -27,10 +27,8 @@ enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <Ticker.h>
 #include "Sender.h"
-// #include <Wire.h>
-// #include <OneWire.h>
-// #include <DallasTemperature.h>
-// #include "FS.h"
+#include "PCF8574.h"
+#include <Wire.h>
 
 #define verbose
 #ifdef verbose

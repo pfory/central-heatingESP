@@ -14,7 +14,13 @@ GIT - https://github.com/pfory/central-heatingESP
 PCF8574 PCF_01(0x20);
 PCF8574 PCF_02(0x21);
 
-// Rotační enkodér KY-040
+/*HW
+1x Wemos D1
+2x I2C expander PCF8574
+5x Rotační enkodér KY-040
+1x relay module 8 channel
+
+*/
 
 //PCF-01                           
 int pinCLKValve1                                  = 0;
@@ -34,7 +40,6 @@ int pinRelayValve4                                = 4;
 int pinCLKValve5                                  = 5;
 int pinDTValve5                                   = 6;
 int pinRelayValve5                                = 7;
-//PCF-03                           
                            
 int poziceEnkod                                   = 0;
 int poziceEnkodOld                                = 0;
