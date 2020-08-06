@@ -5,6 +5,9 @@
 #define     VERSION                      "0.02"
 #define     SW_NAME                      "Ventily"
 
+/////////////////////////////////////////////////////
+enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
+
 #define timers
 #define ota
 #define verbose
@@ -24,10 +27,8 @@
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <Ticker.h>
 #include "Sender.h"
-// #include <Wire.h>
-// #include <OneWire.h>
-// #include <DallasTemperature.h>
-// #include "FS.h"
+#include "PCF8574.h"
+#include <Wire.h>
 
 #define verbose
 #ifdef verbose
@@ -80,6 +81,9 @@ static const char* const      mqtt_topic_valveStop           = "valveStop";
 
 #define RELAY_ON                            LOW
 #define RELAY_OFF                           HIGH
+
+#define OPEN                                1
+#define CLOSE                               0
 
 
 #define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
