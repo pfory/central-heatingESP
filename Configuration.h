@@ -1,6 +1,23 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+#include <Ticker.h>
+#include "Sender.h"
+#include <Wire.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include "FS.h"
+#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
+#include <Keypad_I2C.h>
+#include <Keypad.h>          // GDY120705
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Ticker.h>
+#include <timer.h>
+
+
 //SW name & version
 #define     VERSION                      "1.05"
 #define     SW_NAME                      "Central heat"
@@ -8,7 +25,11 @@
 #define timers
 #define ota
 #define verbose
-
+#define time
+#ifdef time
+#include <TimeLib.h>
+#include <Timezone.h>
+#endif
 
 #define AUTOCONNECTNAME   HOSTNAMEOTA
 #define AUTOCONNECTPWD    "password"
@@ -42,14 +63,6 @@ DALLAS temperature sensor
 keyboard
 */
 
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <Ticker.h>
-#include "Sender.h"
-#include <Wire.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
-#include "FS.h"
 
 #define verbose
 #ifdef verbose
@@ -66,6 +79,16 @@ keyboard
   #define DEBUG_PRINTLN(x)
   #define DEBUG_PRINTF(x, y)
 #endif 
+
+
+// Number of seconds after reset during which a
+// subseqent reset will be considered a double reset.
+#define DRD_TIMEOUT 2
+// RTC Memory Address for the DoubleResetDetector to use
+#define DRD_ADDRESS 0
+
+#define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
+#define CONNECT_TIMEOUT 120 //jak dlouho se ceka na spojeni nez se aktivuje config portal
 
 static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;

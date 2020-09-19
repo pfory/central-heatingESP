@@ -38,10 +38,10 @@ float                 tempUT[12];
 bool                  tempRefresh                 = false;
 uint32_t              heartBeat                   = 0;
 float                 temp[15];              
-                                             
+
 byte relayStatus                                  = RELAY_ON;
 byte manualRelay                                  = 2;
-                                             
+
 uint32_t              runSecToday                  = 0;
 
 bool                  todayClear                  = false;
@@ -49,10 +49,7 @@ bool                  dispClear                   = false;
 
 //#define SIMTEMP
 
-#define time
 #ifdef time
-#include <TimeLib.h>
-#include <Timezone.h>
 WiFiUDP EthernetUdp;
 static const char     ntpServerName[]       = "tik.cesnet.cz";
 //const int timeZone = 2;     // Central European Time
@@ -83,7 +80,6 @@ struct StoreStruct {
   90
 };
 
-#include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 #define PRINT_SPACE  lcd.print(" ");
 volatile bool showDoubleDot                 = false;
@@ -102,9 +98,7 @@ byte customChar[] = {
 };
 
 
-#include <Keypad_I2C.h>
-#include <Keypad.h>          // GDY120705
-#include <Wire.h>
+DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
 
 
 const byte ROWS = 4; //four rows
@@ -126,10 +120,8 @@ byte displayVar       = 1;
 char displayVarSub    = ' ';
 
 //for LED status
-#include <Ticker.h>
 Ticker ticker;
 
-#include <timer.h>
 auto timer = timer_create_default(); // create a timer with default settings
 Timer<> default_timer; // save as above
 
@@ -318,6 +310,20 @@ void setup(void) {
   DEBUG_PRINT(F(SW_NAME));
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
+
+  WiFiManager wifiManager;
+
+  if (drd.detectDoubleReset()) {
+    DEBUG_PRINTLN("Double reset detected, starting config portal...");
+    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
+      DEBUG_PRINTLN("failed to connect and hit timeout");
+      delay(3000);
+      //reset and try again, or maybe put it to deep sleep
+      ESP.reset();
+      delay(5000);
+    }
+  }
+
   
   lcd.init();               // initialize the lcd 
   lcd.backlight();
@@ -359,6 +365,8 @@ void setup(void) {
 
   ticker.attach(1, tick);
   
+  WiFi.printDiag(Serial);
+
   //filesystem
   SPIFFS.begin();
   FSInfo fs_info;
@@ -367,12 +375,8 @@ void setup(void) {
          fs_info.usedBytes, fs_info.totalBytes);
          
          
-  //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
-  WiFiManager wifiManager;
   //reset settings - for testing
   //wifiManager.resetSettings();
-  //wifiManager.setConnectTimeout(60); //5min
 
   IPAddress _ip,_gw,_sn;
   _ip.fromString(static_ip);
@@ -387,6 +391,8 @@ void setup(void) {
 
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
   
   //DEBUG_PRINTLN(ESP.getFlashChipRealSize);
   //DEBUG_PRINTLN(ESP.getCpuFreqMHz);
@@ -554,6 +560,8 @@ void setup(void) {
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
+
+  drd.stop();
   
   DEBUG_PRINTLN(F("Setup end."));
 }
