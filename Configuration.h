@@ -19,7 +19,7 @@
 
 
 //SW name & version
-#define     VERSION                      "1.05"
+#define     VERSION                      "1.11"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -99,10 +99,10 @@ static const char* const      static_ip                      = "192.168.1.109";
 static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
-static const char* const      mqtt_topic_setTempON           = "tempON";
-static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff";
-static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm";
-static const char* const      mqtt_topic_relay               = "manualRelay";
+static const char* const      mqtt_topic_setTempON           = "tempON/set";
+static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff/set";
+static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm/set";
+static const char* const      mqtt_topic_relay_type_set      = "relayType/set";       //0 - manual OFF,1 - manualON,2 - AUTO
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_sendSO              = "sorder";
 static const char* const      mqtt_topic_so0                 = "so0";
@@ -154,6 +154,10 @@ static const char* const      mqtt_topic_so12                = "so12";
 
 #define RELAY_ON                            LOW
 #define RELAY_OFF                           HIGH
+
+#define RELAY_TYPE_OFF                      0
+#define RELAY_TYPE_ON                       1
+#define RELAY_TYPE_AUTO                     2
 
 
 #define TEMPERATURE_PRECISION 10

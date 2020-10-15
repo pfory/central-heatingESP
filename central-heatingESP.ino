@@ -39,8 +39,8 @@ bool                  tempRefresh                 = false;
 uint32_t              heartBeat                   = 0;
 float                 temp[15];              
 
-byte relayStatus                                  = RELAY_ON;
-byte manualRelay                                  = 2;
+byte                  relayStatus                 = RELAY_ON;
+uint8_t               relayType                   = RELAY_TYPE_AUTO;
 
 uint32_t              runSecToday                  = 0;
 
@@ -74,10 +74,12 @@ struct StoreStruct {
   float           tempON;
   float           tempOFFDiff;
   float           tempAlarm;
+  int             relayType;
 } storage = {
-  45,
-  5,
-  90
+  50,
+  2,
+  90,
+  2
 };
 
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
@@ -158,18 +160,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
   DEBUG_PRINTLN();
   
   
-  //if (strcmp(topic, mqtt_topic_relay)==0) {
-    if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str())==0) {
+//  if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str())==0) {
+  if (strcmp(topic, (String(mqtt_base) + "/relayType/set").c_str())==0) {
     printMessageToLCD(topic, val);
-    DEBUG_PRINT("set manual control relay to ");
-    manualRelay = val.toInt();
+    DEBUG_PRINT("set relay to ");
+    relayType = val.toInt();
     if (val.toInt()==1) {
       DEBUG_PRINTLN(F("ON"));
-    } else {
+      relayStatus = RELAY_ON;
+      changeRelay(relayStatus);
+    } else if (val.toInt()==0) {
       DEBUG_PRINTLN(F("OFF"));
+      relayStatus = RELAY_OFF;
+      changeRelay(relayStatus);
+    } else {
+      DEBUG_PRINTLN(F("AUTO"));
+      relayType=RELAY_TYPE_AUTO;
     }
+    void * a;
+    sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
-//  } else if (strcmp(topic, mqtt_topic_restart)==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
@@ -185,12 +195,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINTLN(val.toInt());
     storage.tempON = val.toInt();
     saveConfig();
+    void * a;
+    sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature diff for OFF: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempOFFDiff = val.toInt();
     saveConfig();
+    void * a;
+    sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set alerm temperature: ");
@@ -201,7 +215,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("send sensor order");
     void * a;
-    sendSOHA(a);
+    sendSOMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so0)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set sensor order 0 to ");
@@ -296,7 +310,7 @@ void printMessageToLCD(char* t, String v) {
   lcd.print(t);
   lcd.print(": ");
   lcd.print(v);
-  delay(2000);
+  //delay(2000);
   lcd.clear();
 }
 
@@ -546,15 +560,15 @@ void setup(void) {
   lcd.clear();
 
   //setup timers
-  timer.every(SEND_DELAY,     sendDataHA);
-  timer.every(SENDSTAT_DELAY, sendStatisticHA);
+  timer.every(SEND_DELAY,     sendDataMQTT);
+  timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
   timer.every(MEAS_DELAY,     tempMeas);
   timer.every(1000,           calcStat);
 #ifdef time  
   timer.every(500,            displayTime);
 #endif
   void * a;
-  sendStatisticHA(a);
+  sendStatisticMQTT(a);
   
 
   ticker.detach();
@@ -619,31 +633,20 @@ void relay() {
   if (tempIN<-100 || tempOUT<-100) {
     relayStatus = RELAY_ON;
     changeRelay(relayStatus);
-  } else {
-    if (relayStatus == RELAY_OFF && (tempOUT >= SAFETY_ON || tempIN >= SAFETY_ON)) {
+  } else if (relayStatus == RELAY_OFF && (tempOUT >= SAFETY_ON || tempIN >= SAFETY_ON)) {
+    relayStatus = RELAY_ON;
+    changeRelay(relayStatus);
+  } else if (relayType==RELAY_TYPE_AUTO) {
+    //-----------------------------------zmena 0-1--------------------------------------------
+    if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-    }
-    if (manualRelay==2) {
-      //-----------------------------------zmena 0-1--------------------------------------------
-      if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
-        relayStatus = RELAY_ON;
-        changeRelay(relayStatus);
-        //lastMillis = millis();
-        sendRelayHA(1);
-      //-----------------------------------zmena 1-0--------------------------------------------
-      } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
-      //} else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
-        relayStatus = RELAY_OFF;
-        changeRelay(relayStatus);
-        sendRelayHA(0);
-      }
-    } else if (manualRelay==1) {
-        relayStatus = RELAY_ON;
-        changeRelay(relayStatus);
-    } else if (manualRelay==0) {
-        relayStatus = RELAY_OFF;
-        changeRelay(relayStatus);
+      //lastMillis = millis();
+    //-----------------------------------zmena 1-0--------------------------------------------
+    //} else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON && tempO- storage.tempOFFDiff) { 
+    } else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
+      relayStatus = RELAY_OFF;
+      changeRelay(relayStatus);
     }
   }
   dispRelayStatus();
@@ -672,14 +675,16 @@ void displayClear() {
 
 void changeRelay(byte status) {
   digitalWrite(RELAYPIN, status);
+  sendRelayMQTT(status);
 }
 
-void sendRelayHA(byte akce) {
+void sendRelayMQTT(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
  
-  //sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  
   digitalWrite(BUILTIN_LED, HIGH);
 }
 
@@ -690,9 +695,9 @@ void dispRelayStatus() {
     lcd.print(" ON");
   } else if (relayStatus==RELAY_OFF) {
     lcd.print("OFF");
-  } else if (manualRelay==RELAY_ON) {
+  } else if (relayType==RELAY_TYPE_ON) {
     lcd.print("MON");
-  } else if (manualRelay==RELAY_OFF) {
+  } else if (relayType==RELAY_TYPE_OFF) {
     lcd.print("MOF");
   }
 }
@@ -929,7 +934,7 @@ void printTemp() {
   }*/
 }
 
-bool sendDataHA(void *) {
+bool sendDataMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
@@ -956,17 +961,18 @@ bool sendDataHA(void *) {
   return true;
 }
 
-bool sendStatisticHA(void *) {
+bool sendStatisticMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
-  DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+  DEBUG_PRINTLN(F(" - I am sending statistic to MQTT"));
 
   SenderClass sender;
-  sender.add("VersionSWCentral",  VERSION);
-  sender.add("HeartBeat",         heartBeat++);
-  if (heartBeat % 10 == 0) sender.add("RSSI",              WiFi.RSSI());
-  sender.add("tempON",            storage.tempON);
-  sender.add("tempDiff",          storage.tempOFFDiff);
+  sender.add("VersionSWCentral",              VERSION);
+  sender.add("HeartBeat",                     heartBeat++);
+  if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
+  sender.add(String("tempON"),                storage.tempON);
+  sender.add(String("tempOFFDiff"),           storage.tempOFFDiff);
+  sender.add(String("relayType"),             storage.relayType);
   
   DEBUG_PRINTLN(F("Calling MQTT"));
   
@@ -1354,11 +1360,12 @@ void reconnect() {
     if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
-      client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "tempON").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "tempOFFDiff").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "tempAlarm").c_str());
+      client.subscribe((String(mqtt_base) + "/").c_str());
+      //client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str());
+      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
+      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str());
+      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str());
+      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str());
       client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
@@ -1422,6 +1429,7 @@ bool saveConfig() {
   doc["tempON"]                   = storage.tempON;
   doc["tempOFFDiff"]              = storage.tempOFFDiff;
   doc["tempAlarm"]                = storage.tempAlarm;
+  doc["relayType"]                = storage.relayType;
   doc["sensorOrder[0]"]           = sensorOrder[0];
   doc["sensorOrder[1]"]           = sensorOrder[1];
   doc["sensorOrder[2]"]           = sensorOrder[2];
@@ -1477,6 +1485,7 @@ bool readConfig() {
         storage.tempON        = doc["tempON"];
         storage.tempOFFDiff   = doc["tempOFFDiff"];
         storage.tempAlarm     = doc["tempAlarm"];
+        storage.relayType     = doc["relayType"];
         
         sensorOrder[0] = doc["sensorOrder[0]"];
         DEBUG_PRINT(F("sensorOrder[0]: "));
@@ -1530,10 +1539,10 @@ bool readConfig() {
   return false;
 }
 
-bool sendSOHA(void *) {
+bool sendSOMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   printSystemTime();
-  DEBUG_PRINTLN(F(" - I am sending sensor order to HA"));
+  DEBUG_PRINTLN(F(" - I am sending sensor order to MQTT"));
   SenderClass sender;
   sender.add("so0", sensorOrder[0]);
   sender.add("so1", sensorOrder[1]);
@@ -1549,9 +1558,9 @@ bool sendSOHA(void *) {
   sender.add("so11", sensorOrder[11]);
   sender.add("so11", sensorOrder[12]);
 
-  noInterrupts();
+  //noInterrupts();
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  interrupts();
+  //interrupts();
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }

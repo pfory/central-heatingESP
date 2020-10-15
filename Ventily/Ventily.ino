@@ -43,13 +43,7 @@ int stavPredValve5      = 0;
 int stavCLK             = 0;
 int stavPred            = 0;
 
-int valve1Set           = 0;
-int valve2Set           = 0;
-int valve3Set           = 0;
-int valve4Set           = 0;
-int valve5Set           = 0;
 bool change             = false;
-int changeValve         = 0;
 int activeValve         = 0;
 
 uint32_t              heartBeat                   = 0;
@@ -101,29 +95,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
     ESP.restart();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve1)).c_str())==0) {
     DEBUG_PRINT("set valve1 to ");
-    valve1Set = val.toInt();
-    setValve(valve1Set);
-    changeValve = 1;
+    setValve(val.toInt());
+    activeValve = SOLAROUT;
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve2)).c_str())==0) {
     DEBUG_PRINT("set valve2 to ");
-    valve2Set = val.toInt();
-    setValve(valve2Set);
-    changeValve = 2;
+    setValve(val.toInt());
+    activeValve = SOLARIN;
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve3)).c_str())==0) {
     DEBUG_PRINT("set valve3 to ");
-    valve3Set = val.toInt();
-    setValve(valve3Set);
-    changeValve = 3;
+    setValve(val.toInt());
+    activeValve = RADIATOR;
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve4)).c_str())==0) {
     DEBUG_PRINT("set valve4 to ");
-    valve4Set = val.toInt();
-    setValve(valve4Set);
-    changeValve = 4;
+    setValve(val.toInt());
+    activeValve = BOJLERIN;
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve5)).c_str())==0) {
     DEBUG_PRINT("set valve5 to ");
-    valve5Set = val.toInt();
-    setValve(valve5Set);
-    changeValve = 5;
+    setValve(val.toInt());
+    activeValve = BOJLEROUT;
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valveStop)).c_str())==0) {
     DEBUG_PRINT("stop valve");
     valveStop();
@@ -134,9 +123,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setValve(int val) {
   change = true;
 	if (val==1) {
-	  DEBUG_PRINTLN(F("ON"));
+    dir = OPEN;
+	  DEBUG_PRINTLN(F("OPEN"));
 	} else if (val==0) {
-	  DEBUG_PRINTLN(F("OFF"));
+    dir = CLOSE;
+	  DEBUG_PRINTLN(F("CLOSE"));
 	}
 }
 
@@ -166,13 +157,13 @@ void setup() {
   heartBeat = _reset_reason;
   
   /*
- REASON_DEFAULT_RST             = 0      normal startup by power on 
- REASON_WDT_RST                 = 1      hardware watch dog reset 
- REASON_EXCEPTION_RST           = 2      exception reset, GPIO status won't change 
- REASON_SOFT_WDT_RST            = 3      software watch dog reset, GPIO status won't change 
- REASON_SOFT_RESTART            = 4      software restart ,system_restart , GPIO status won't change 
- REASON_DEEP_SLEEP_AWAKE        = 5      wake up from deep-sleep 
- REASON_EXT_SYS_RST             = 6      external system reset 
+  REASON_DEFAULT_RST             = 0      normal startup by power on 
+  REASON_WDT_RST                 = 1      hardware watch dog reset 
+  REASON_EXCEPTION_RST           = 2      exception reset, GPIO status won't change 
+  REASON_SOFT_WDT_RST            = 3      software watch dog reset, GPIO status won't change 
+  REASON_SOFT_RESTART            = 4      software restart ,system_restart , GPIO status won't change 
+  REASON_DEEP_SLEEP_AWAKE        = 5      wake up from deep-sleep 
+  REASON_EXT_SYS_RST             = 6      external system reset 
   */
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
@@ -248,7 +239,6 @@ void setup() {
   void * a;
   sendStatisticHA(a);
 
-
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
@@ -256,6 +246,10 @@ void setup() {
   DEBUG_PRINTLN(F("Setup end."));
   
   activeValve = SOLAROUT;
+  
+#ifdef test
+  valveTest();
+#endif
 }
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
@@ -275,126 +269,58 @@ void loop() {
     change = false;
     ticker.attach(1, tick);
 
-    if (changeValve == 1) {
-      if (valve1Set == 0) {
-        //close
-        Serial.println("Zavirani ventilu ");
-        PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve1,    LOW);
-        poziceEnkod = 0;
-      } else {
-        //open
-        Serial.println("Otevirani ventilu ");
-        PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve1,    LOW);
-        poziceEnkod = 0;
-      }
-    } else if (changeValve == 2) {
-      if (valve2Set == 0) {
-        //close
-        Serial.println("Zavirani ventilu ");
-        PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve2,    LOW);
-        poziceEnkod = 0;
-      } else {
-        //open
-        Serial.println("Otevirani ventilu ");
-        PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve2,    LOW);
-        poziceEnkod = 0;
-      }
-    } else if (changeValve == 3) {
-      if (valve3Set == 0) {
-        //close
-        Serial.println("Zavirani ventilu ");
-        PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve3,    LOW);
-        poziceEnkod = 0;
-      } else {
-        //open
-        Serial.println("Otevirani ventilu ");
-        PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve3,    LOW);
-        poziceEnkod = 0;
-      }
-    } else if (changeValve == 4) {
-      if (valve4Set == 0) {
-        //close
-        Serial.println("Zavirani ventilu ");
-        PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve4,    LOW);
-        poziceEnkod = 0;
-      } else {
-        //open
-        Serial.println("Otevirani ventilu ");
-        PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve4,    LOW);
-        poziceEnkod = 0;
-      }
-    } else if (changeValve == 5) {
-      if (valve5Set == 0) {
-        //close
-        Serial.println("Zavirani ventilu ");
-        PCF_01.write(pinPolarityRelay,  HIGH);
-        PCF_01.write(pinRelayValve5,    LOW);
-        poziceEnkod = 0;
-      } else {
-        //open
-        Serial.println("Otevirani ventilu ");
-        PCF_01.write(pinPolarityRelay,   LOW);
-        PCF_01.write(pinRelayValve5,    LOW);
-        poziceEnkod = 0;
-      }
-    }
+    start(dir);
+    poziceEnkod = 0;
   }
-  if (Serial.available() > 0) {
-    int incomingByte = Serial.read();
+  // if (Serial.available() > 0) {
+    // int incomingByte = Serial.read();
 
-    if (incomingByte == 48) {
-      //close
-      Serial.println("Zavirani ventilu ");
-      PCF_01.write(pinPolarityRelay,  HIGH);
-      if (changeValve == 1) {
-        PCF_01.write(pinRelayValve1,    LOW);
-      } else if (changeValve == 2) {
-        PCF_01.write(pinRelayValve2,    LOW);
-      } else if (changeValve == 3) {
-        PCF_01.write(pinRelayValve3,    LOW);
-      } else if (changeValve == 4) {
-        PCF_01.write(pinRelayValve4,    LOW);
-      } else if (changeValve == 5) {
-        PCF_01.write(pinRelayValve5,    LOW);
-      }
-      poziceEnkod = 0;
-    } else if (incomingByte == 49) {
-      //open
-      Serial.println("Otevirani ventilu ");
-      PCF_01.write(pinPolarityRelay,   LOW);
-      if (changeValve == 1) {
-        PCF_01.write(pinRelayValve1,    LOW);
-      } else if (changeValve == 2) {
-        PCF_01.write(pinRelayValve2,    LOW);
-      } else if (changeValve == 3) {
-        PCF_01.write(pinRelayValve3,    LOW);
-      } else if (changeValve == 4) {
-        PCF_01.write(pinRelayValve4,    LOW);
-      } else if (changeValve == 5) {
-        PCF_01.write(pinRelayValve5,    LOW);
-      }
-      poziceEnkod = 0;
-    } else {
-      // digitalWrite(D3, LOW);
-    }
-   }
+    // if (incomingByte == 48) {
+      // //close
+      // DEBUG_PRINTLN("Zavirani ventilu ");
+      // start(changeValve
+      // PCF_01.write(pinPolarityRelay,  HIGH);
+      // if (changeValve == 1) {
+        // PCF_01.write(pinRelayValve1,    LOW);
+      // } else if (changeValve == 2) {
+        // PCF_01.write(pinRelayValve2,    LOW);
+      // } else if (changeValve == 3) {
+        // PCF_01.write(pinRelayValve3,    LOW);
+      // } else if (changeValve == 4) {
+        // PCF_01.write(pinRelayValve4,    LOW);
+      // } else if (changeValve == 5) {
+        // PCF_01.write(pinRelayValve5,    LOW);
+      // }
+      // poziceEnkod = 0;
+    // } else if (incomingByte == 49) {
+      // //open
+      // Serial.println("Otevirani ventilu ");
+      // PCF_01.write(pinPolarityRelay,   LOW);
+      // if (changeValve == 1) {
+        // PCF_01.write(pinRelayValve1,    LOW);
+      // } else if (changeValve == 2) {
+        // PCF_01.write(pinRelayValve2,    LOW);
+      // } else if (changeValve == 3) {
+        // PCF_01.write(pinRelayValve3,    LOW);
+      // } else if (changeValve == 4) {
+        // PCF_01.write(pinRelayValve4,    LOW);
+      // } else if (changeValve == 5) {
+        // PCF_01.write(pinRelayValve5,    LOW);
+      // }
+      // poziceEnkod = 0;
+    // } else {
+      // // digitalWrite(D3, LOW);
+    // }
+   // }
     
     
   stavCLK = getStavCLK();
   if (stavCLK != stavPred) {
     int valve;
-    if (activeValve == SOLAROUT) valve = pinDTValve1;
-    if (activeValve == SOLARIN) valve = pinDTValve2;
-    if (activeValve == RADIATOR) valve = pinDTValve3;
-    if (activeValve == BOJLERIN) valve = pinDTValve4;
+    if (activeValve == SOLAROUT)  valve = pinDTValve1;
+    if (activeValve == SOLARIN)   valve = pinDTValve2;
+    if (activeValve == RADIATOR)  valve = pinDTValve3;
+    if (activeValve == BOJLERIN)  valve = pinDTValve4;
     if (activeValve == BOJLEROUT) valve = pinDTValve5;
   
     if (PCF_01.read(valve) != stavCLK) {
@@ -432,11 +358,11 @@ void valveStop() {
 }
 
 int getStavCLK() {
-  if      (activeValve == SOLAROUT) { return PCF_01.read(pinCLKValve1); }
-  else if (activeValve == 2) { return PCF_01.read(pinCLKValve2); }
-  else if (activeValve == 3) { return PCF_01.read(pinCLKValve3); }
-  else if (activeValve == 4) { return PCF_01.read(pinCLKValve4); }
-  else if (activeValve == 5) { return PCF_02.read(pinCLKValve5); }
+  if      (activeValve == SOLAROUT)   { return PCF_01.read(pinCLKValve1); }
+  else if (activeValve == SOLARIN)    { return PCF_02.read(pinCLKValve2); }
+  else if (activeValve == RADIATOR)   { return PCF_02.read(pinCLKValve3); }
+  else if (activeValve == BOJLERIN)   { return PCF_02.read(pinCLKValve4); }
+  else if (activeValve == BOJLEROUT)  { return PCF_02.read(pinCLKValve5); }
 }
 
 void start(int action) {
@@ -446,11 +372,11 @@ void start(int action) {
   if (action == OPEN) {
     PCF_01.write(pinPolarityRelay,   LOW);
   }
-  if (activeValve == SOLAROUT) PCF_01.write(pinRelayValve1,    HIGH);
-  if (activeValve == 2) PCF_01.write(pinRelayValve2,    HIGH);
-  if (activeValve == 3) PCF_02.write(pinRelayValve3,    HIGH);
-  if (activeValve == 4) PCF_02.write(pinRelayValve4,    HIGH);
-  if (activeValve == 5) PCF_02.write(pinRelayValve5,    HIGH);
+  if (activeValve == SOLAROUT)  PCF_01.write(pinRelayValve1,    HIGH);
+  if (activeValve == SOLARIN)   PCF_02.write(pinRelayValve2,    HIGH);
+  if (activeValve == RADIATOR)  PCF_02.write(pinRelayValve3,    HIGH);
+  if (activeValve == BOJLERIN)  PCF_02.write(pinRelayValve4,    HIGH);
+  if (activeValve == BOJLEROUT) PCF_02.write(pinRelayValve5,    HIGH);
 
   poziceEnkod = 0;
 }
@@ -473,12 +399,6 @@ void reconnect() {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
        client.subscribe((String(mqtt_base) + "/#").c_str());
-      // client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
-      // client.subscribe((String(mqtt_base) + "/" + "valve1").c_str());
-      // client.subscribe((String(mqtt_base) + "/" + "valve2").c_str());
-      // client.subscribe((String(mqtt_base) + "/" + "valve3").c_str());
-      // client.subscribe((String(mqtt_base) + "/" + "valve4").c_str());
-      // client.subscribe((String(mqtt_base) + "/" + "valve5").c_str());
     } else {
       DEBUG_PRINT("failed, rc=");
       DEBUG_PRINT(client.state());
@@ -517,3 +437,41 @@ bool sendStatisticHA(void *) {
   return true;
 }
 
+void valveTest() {
+  PCF_01.write(pinPolarityRelay,   LOW);
+  
+  PCF_01.write(pinRelayValve1,    HIGH);
+  DELAY
+  PCF_01.write(pinRelayValve1,    LOW);
+  PCF_02.write(pinRelayValve2,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve2,    LOW);
+  PCF_02.write(pinRelayValve3,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve3,    LOW);
+  PCF_02.write(pinRelayValve4,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve4,    LOW);
+  PCF_02.write(pinRelayValve5,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve5,    LOW);
+
+  PCF_01.write(pinPolarityRelay,   HIGH);
+  PCF_01.write(pinRelayValve1,    HIGH);
+  DELAY
+  PCF_01.write(pinRelayValve1,    LOW);
+  PCF_02.write(pinRelayValve2,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve2,    LOW);
+  PCF_02.write(pinRelayValve3,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve3,    LOW);
+  PCF_02.write(pinRelayValve4,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve4,    LOW);
+  PCF_02.write(pinRelayValve5,    HIGH);
+  DELAY
+  PCF_02.write(pinRelayValve5,    LOW);
+ 
+  return
+}

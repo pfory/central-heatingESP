@@ -7,6 +7,7 @@
 
 /////////////////////////////////////////////////////
 enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
+enum dirs {OPEN, CLOSE} dir;
 
 #define timers
 #define ota
@@ -45,6 +46,11 @@ enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
   #define DEBUG_PRINTLN(x)
   #define DEBUG_PRINTF(x, y)
 #endif 
+
+#define test
+#ifdef test
+  #define DELAY                 delay(500)
+#endif
 
 static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;
