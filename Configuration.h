@@ -102,7 +102,7 @@ static const char* const      mqtt_topic_weather             = "/home/Meteo/Temp
 static const char* const      mqtt_topic_setTempON           = "tempON/set";
 static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff/set";
 static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm/set";
-static const char* const      mqtt_topic_relay_type_set      = "relayType/set";       //0 - manual OFF,1 - manualON,2 - AUTO
+static const char* const      mqtt_topic_relay_type_set      = "relayType/set";       //0 - MANUAL, 1 - AUTO
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_sendSO              = "sorder";
 static const char* const      mqtt_topic_so0                 = "so0";
@@ -155,8 +155,8 @@ static const char* const      mqtt_topic_so12                = "so12";
 #define RELAY_ON                            LOW
 #define RELAY_OFF                           HIGH
 
-#define RELAY_TYPE_OFF                      0
-#define RELAY_TYPE_ON                       1
+#define RELAY_TYPE_MANUAL_OFF               0
+#define RELAY_TYPE_MANUAL_ON                1
 #define RELAY_TYPE_AUTO                     2
 
 

@@ -23,11 +23,9 @@ DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[NUMBER_OF_DEVICES];
 DeviceAddress tempDeviceAddress;
 
-DeviceAddress tempDeviceAddresses[NUMBER_OF_DEVICES];
+//DeviceAddress tempDeviceAddresses[NUMBER_OF_DEVICES];
 
-unsigned int numberOfDevices                = 0; // Number of temperature devices found
 bool firstTempMeasDone                      = false;
-
 
 float sensor[NUMBER_OF_DEVICES];
 
@@ -40,7 +38,6 @@ uint32_t              heartBeat                   = 0;
 float                 temp[15];              
 
 byte                  relayStatus                 = RELAY_ON;
-uint8_t               relayType                   = RELAY_TYPE_AUTO;
 
 uint32_t              runSecToday                  = 0;
 
@@ -79,7 +76,7 @@ struct StoreStruct {
   50,
   2,
   90,
-  2
+  RELAY_TYPE_AUTO
 };
 
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
@@ -159,24 +156,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   DEBUG_PRINTLN();
   
-  
-//  if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str())==0) {
-  if (strcmp(topic, (String(mqtt_base) + "/relayType/set").c_str())==0) {
+  if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set relay to ");
-    relayType = val.toInt();
-    if (val.toInt()==1) {
-      DEBUG_PRINTLN(F("ON"));
-      relayStatus = RELAY_ON;
-      changeRelay(relayStatus);
-    } else if (val.toInt()==0) {
-      DEBUG_PRINTLN(F("OFF"));
+    storage.relayType = val.toInt();
+    if (val.toInt()==0) {
+      DEBUG_PRINTLN(F("MANUAL OFF"));
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
-    } else {
+    } else if (val.toInt()==1) {
+      DEBUG_PRINTLN(F("MANUAL ON"));
+      relayStatus = RELAY_ON;
+      changeRelay(relayStatus);
+    } else if (val.toInt()==2) {
       DEBUG_PRINTLN(F("AUTO"));
-      relayType=RELAY_TYPE_AUTO;
     }
+    saveConfig();
     void * a;
     sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
@@ -589,9 +584,7 @@ void loop(void) {
   ArduinoOTA.handle();
 #endif
 
-  if (!client.connected()) {
-    reconnect();
-  }
+  reconnect();
   client.loop();
 
   display();
@@ -636,15 +629,14 @@ void relay() {
   } else if (relayStatus == RELAY_OFF && (tempOUT >= SAFETY_ON || tempIN >= SAFETY_ON)) {
     relayStatus = RELAY_ON;
     changeRelay(relayStatus);
-  } else if (relayType==RELAY_TYPE_AUTO) {
+  } else if (storage.relayType==RELAY_TYPE_AUTO) {
     //-----------------------------------zmena 0-1--------------------------------------------
     if (relayStatus == RELAY_OFF && (tempOUT >= storage.tempON || tempIN >= storage.tempON)) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       //lastMillis = millis();
     //-----------------------------------zmena 1-0--------------------------------------------
-    //} else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON && tempO- storage.tempOFFDiff) { 
-    } else if (relayStatus == RELAY_ON && tempOUT < storage.tempON && (tempOUT - tempIN) < storage.tempOFFDiff) { 
+    } else if (relayStatus == RELAY_ON && tempOUT <= storage.tempON - storage.tempOFFDiff) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
     }
@@ -695,9 +687,9 @@ void dispRelayStatus() {
     lcd.print(" ON");
   } else if (relayStatus==RELAY_OFF) {
     lcd.print("OFF");
-  } else if (relayType==RELAY_TYPE_ON) {
+  } else if (storage.relayType==RELAY_TYPE_MANUAL_ON) {
     lcd.print("MON");
-  } else if (relayType==RELAY_TYPE_OFF) {
+  } else if (storage.relayType==RELAY_TYPE_MANUAL_OFF) {
     lcd.print("MOF");
   }
 }
@@ -1360,7 +1352,7 @@ void reconnect() {
     if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
-      client.subscribe((String(mqtt_base) + "/").c_str());
+      client.subscribe((String(mqtt_base) + "/#").c_str());
       //client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str());
       // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
       // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str());
@@ -1576,8 +1568,6 @@ void dsInit(void) {
   sensorsOUT.begin(); 
   sensorsIN.begin(); 
   sensorsUT.begin(); 
-
-  DEBUG_PRINT(numberOfDevices);
   
   if (sensorsUT.getDeviceCount()==1) {
     DEBUG_PRINTLN(" sensor found");
@@ -1585,14 +1575,11 @@ void dsInit(void) {
     DEBUG_PRINTLN(" sensor(s) found");
   }
 
-  sensorsIN.getAddress(inThermometer, 0); 
-  sensorsOUT.getAddress(outThermometer, 0); 
-
   // Loop through each device, print out address
-  for (byte i=0;i<numberOfDevices; i++) {
+  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
       // Search the wire for address
     if (sensorsUT.getAddress(tempDeviceAddress, i)) {
-      memcpy(tempDeviceAddresses[i],tempDeviceAddress,8);
+      memcpy(utT[i],tempDeviceAddress,8);
     }
   }
   sensorsIN.setResolution(TEMPERATURE_PRECISION);

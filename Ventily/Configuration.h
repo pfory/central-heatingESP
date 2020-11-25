@@ -2,12 +2,11 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                      "0.02"
+#define     VERSION                      "0.03"
 #define     SW_NAME                      "Ventily"
 
 /////////////////////////////////////////////////////
 enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
-enum dirs {OPEN, CLOSE} dir;
 
 #define timers
 #define ota
@@ -20,7 +19,7 @@ enum dirs {OPEN, CLOSE} dir;
 #define ota
 #ifdef ota
 #include <ArduinoOTA.h>
-#define HOSTNAMEOTA   "Ventily"
+#define HOSTNAMEOTA   SW_NAME VERSION
 #endif
 
 
@@ -47,9 +46,9 @@ enum dirs {OPEN, CLOSE} dir;
   #define DEBUG_PRINTF(x, y)
 #endif 
 
-#define test
+//#define test
 #ifdef test
-  #define DELAY                 delay(500)
+  #define DELAY                 delay(500);
 #endif
 
 static const char* const      mqtt_server                    = "192.168.1.56";

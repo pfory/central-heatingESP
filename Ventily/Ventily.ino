@@ -8,7 +8,8 @@ GIT - https://github.com/pfory/central-heatingESP
 #include "Configuration.h"
 
 PCF8574 PCF_01(0x20);
-PCF8574 PCF_02(0x21);
+PCF8574 PCF_02(0x24);
+
 
 // Rotační enkodér KY-040
 
@@ -26,10 +27,10 @@ int pinCLKValve2        = 0;
 int pinDTValve2         = 1;
 int pinCLKValve3        = 2;
 int pinDTValve3         = 3;
-int pinCLKValve4        = 4;
-int pinDTValve4         = 5;
-int pinCLKValve5        = 6;
-int pinDTValve5         = 7;
+int pinCLKValve4        = 4;  //bily
+int pinDTValve4         = 5;  //modry
+int pinCLKValve5        = 6;  //bily
+int pinDTValve5         = 7;  //modry
 
 
 /* variables */
@@ -46,9 +47,9 @@ int stavPred            = 0;
 bool change             = false;
 int activeValve         = 0;
 
-uint32_t              heartBeat                   = 0;
+uint32_t heartBeat      = 0;
 
-
+int direction           = 0;
 
 #include <timer.h>
 auto timer = timer_create_default(); // create a timer with default settings
@@ -114,7 +115,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     setValve(val.toInt());
     activeValve = BOJLEROUT;
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valveStop)).c_str())==0) {
-    DEBUG_PRINT("stop valve");
+    DEBUG_PRINT("STOP");
     valveStop();
   }
 }
@@ -123,12 +124,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setValve(int val) {
   change = true;
 	if (val==1) {
-    dir = OPEN;
 	  DEBUG_PRINTLN(F("OPEN"));
 	} else if (val==0) {
-    dir = CLOSE;
 	  DEBUG_PRINTLN(F("CLOSE"));
 	}
+  direction = val;
 }
 
 bool isDebugEnabled()
@@ -235,9 +235,9 @@ void setup() {
   
   timer.every(800, checkStatus);
   
-  timer.every(SENDSTAT_DELAY, sendStatisticHA);
+  timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
   void * a;
-  sendStatisticHA(a);
+  sendStatisticMQTT(a);
 
   ticker.detach();
   //keep LED on
@@ -269,7 +269,8 @@ void loop() {
     change = false;
     ticker.attach(1, tick);
 
-    start(dir);
+    DEBUG_PRINT("START ");
+    start(direction);
     poziceEnkod = 0;
   }
   // if (Serial.available() > 0) {
@@ -317,18 +318,25 @@ void loop() {
   stavCLK = getStavCLK();
   if (stavCLK != stavPred) {
     int valve;
-    if (activeValve == SOLAROUT)  valve = pinDTValve1;
-    if (activeValve == SOLARIN)   valve = pinDTValve2;
-    if (activeValve == RADIATOR)  valve = pinDTValve3;
-    if (activeValve == BOJLERIN)  valve = pinDTValve4;
-    if (activeValve == BOJLEROUT) valve = pinDTValve5;
-  
-    if (PCF_01.read(valve) != stavCLK) {
+    int stav;
+    
+    if (activeValve == SOLAROUT) {
+      valve = pinDTValve1;
+      stav = PCF_01.read(valve);
+    } else {
+      if (activeValve == SOLARIN)   valve = pinDTValve2;
+      if (activeValve == RADIATOR)  valve = pinDTValve3;
+      if (activeValve == BOJLERIN)  valve = pinDTValve4;
+      if (activeValve == BOJLEROUT) valve = pinDTValve5;
+      stav = PCF_02.read(valve);
+    }
+    
+    if (stav != stavCLK) {
       poziceEnkod++;
     } else {
       poziceEnkod--;
     }
-    DEBUG_PRINT(".");
+    DEBUG_PRINT(poziceEnkod);
   }
   stavPred = stavCLK;
 }
@@ -336,12 +344,7 @@ void loop() {
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 bool checkStatus(void *) {
   if (poziceEnkod == poziceEnkodOld) {
-    // PCF_01.write(pinPolarityRelay,      HIGH);
-    // PCF_01.write(pinRelayValve1,        HIGH);
-    // PCF_01.write(pinRelayValve2,        HIGH);
-    // PCF_01.write(pinRelayValve3,        HIGH);
-    // PCF_01.write(pinRelayValve4,        HIGH);
-    // PCF_01.write(pinRelayValve5,        HIGH);
+    valveStop();
   } else {
     poziceEnkodOld = poziceEnkod;
   }
@@ -349,6 +352,7 @@ bool checkStatus(void *) {
 }
 
 void valveStop() {
+  DEBUG_PRINTLN("VALVE STOP");
   PCF_01.write(pinPolarityRelay,      HIGH);
   PCF_01.write(pinRelayValve1,        HIGH);
   PCF_01.write(pinRelayValve2,        HIGH);
@@ -367,16 +371,18 @@ int getStavCLK() {
 
 void start(int action) {
   if (action == CLOSE) {
+    DEBUG_PRINTLN("CLOSE");
     PCF_01.write(pinPolarityRelay,  HIGH);
   }
   if (action == OPEN) {
+    DEBUG_PRINTLN("OPEN");
     PCF_01.write(pinPolarityRelay,   LOW);
   }
-  if (activeValve == SOLAROUT)  PCF_01.write(pinRelayValve1,    HIGH);
-  if (activeValve == SOLARIN)   PCF_02.write(pinRelayValve2,    HIGH);
-  if (activeValve == RADIATOR)  PCF_02.write(pinRelayValve3,    HIGH);
-  if (activeValve == BOJLERIN)  PCF_02.write(pinRelayValve4,    HIGH);
-  if (activeValve == BOJLEROUT) PCF_02.write(pinRelayValve5,    HIGH);
+  if (activeValve == SOLAROUT)  PCF_01.write(pinRelayValve1,    LOW);
+  if (activeValve == SOLARIN)   PCF_01.write(pinRelayValve2,    LOW);
+  if (activeValve == RADIATOR)  PCF_01.write(pinRelayValve3,    LOW);
+  if (activeValve == BOJLERIN)  PCF_01.write(pinRelayValve4,    LOW);
+  if (activeValve == BOJLEROUT) PCF_01.write(pinRelayValve5,    LOW);
 
   poziceEnkod = 0;
 }
@@ -409,10 +415,10 @@ void reconnect() {
   }
 }
 
-bool sendDataHA(void *) {
+bool sendDataMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
-  DEBUG_PRINTLN(F(" - I am sending data to HA"));
+  DEBUG_PRINTLN(F(" - I am sending data to MQTT"));
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
@@ -420,10 +426,10 @@ bool sendDataHA(void *) {
   return true;
 }
 
-bool sendStatisticHA(void *) {
+bool sendStatisticMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
-  DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+  DEBUG_PRINTLN(F(" - I am sending statistic to MQTT"));
 
   SenderClass sender;
   sender.add("VersionSWVentily",  VERSION);
@@ -437,9 +443,9 @@ bool sendStatisticHA(void *) {
   return true;
 }
 
+#ifdef test
 void valveTest() {
   PCF_01.write(pinPolarityRelay,   LOW);
-  
   PCF_01.write(pinRelayValve1,    HIGH);
   DELAY
   PCF_01.write(pinRelayValve1,    LOW);
@@ -455,7 +461,6 @@ void valveTest() {
   PCF_02.write(pinRelayValve5,    HIGH);
   DELAY
   PCF_02.write(pinRelayValve5,    LOW);
-
   PCF_01.write(pinPolarityRelay,   HIGH);
   PCF_01.write(pinRelayValve1,    HIGH);
   DELAY
@@ -472,6 +477,6 @@ void valveTest() {
   PCF_02.write(pinRelayValve5,    HIGH);
   DELAY
   PCF_02.write(pinRelayValve5,    LOW);
- 
-  return
+  return;
 }
+#endif
