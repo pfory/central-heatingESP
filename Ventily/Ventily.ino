@@ -95,25 +95,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve1)).c_str())==0) {
-    DEBUG_PRINT("set valve1 to ");
-    setValve(val.toInt());
-    activeValve = SOLAROUT;
+    setValve(val.toInt(), 0);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve2)).c_str())==0) {
     DEBUG_PRINT("set valve2 to ");
-    setValve(val.toInt());
-    activeValve = SOLARIN;
+    setValve(val.toInt(), 1);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve3)).c_str())==0) {
     DEBUG_PRINT("set valve3 to ");
-    setValve(val.toInt());
-    activeValve = RADIATOR;
+    setValve(val.toInt(), 2);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve4)).c_str())==0) {
     DEBUG_PRINT("set valve4 to ");
-    setValve(val.toInt());
-    activeValve = BOJLERIN;
+    setValve(val.toInt(), 3);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve5)).c_str())==0) {
     DEBUG_PRINT("set valve5 to ");
-    setValve(val.toInt());
-    activeValve = BOJLEROUT;
+    setValve(val.toInt(), 4);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valveStop)).c_str())==0) {
     DEBUG_PRINT("STOP");
     valveStop();
@@ -121,14 +115,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 
-void setValve(int val) {
-  change = true;
-	if (val==1) {
+void setValve(int dir, int valve) {
+  DEBUG_PRINT("set valve ");
+  DEBUG_PRINT(valve);
+  DEBUG_PRINT(" to ");
+	if (dir==1) {
 	  DEBUG_PRINTLN(F("OPEN"));
-	} else if (val==0) {
+	} else if (dir==0) {
 	  DEBUG_PRINTLN(F("CLOSE"));
 	}
-  direction = val;
+  change = true;
+  direction = dir;
+  activeValve = valve;
 }
 
 bool isDebugEnabled()
@@ -265,6 +263,8 @@ void loop() {
   }
   client.loop();
 
+  stavCLK = getStavCLK();
+
   if (change) {
     change = false;
     ticker.attach(1, tick);
@@ -273,49 +273,7 @@ void loop() {
     start(direction);
     poziceEnkod = 0;
   }
-  // if (Serial.available() > 0) {
-    // int incomingByte = Serial.read();
-
-    // if (incomingByte == 48) {
-      // //close
-      // DEBUG_PRINTLN("Zavirani ventilu ");
-      // start(changeValve
-      // PCF_01.write(pinPolarityRelay,  HIGH);
-      // if (changeValve == 1) {
-        // PCF_01.write(pinRelayValve1,    LOW);
-      // } else if (changeValve == 2) {
-        // PCF_01.write(pinRelayValve2,    LOW);
-      // } else if (changeValve == 3) {
-        // PCF_01.write(pinRelayValve3,    LOW);
-      // } else if (changeValve == 4) {
-        // PCF_01.write(pinRelayValve4,    LOW);
-      // } else if (changeValve == 5) {
-        // PCF_01.write(pinRelayValve5,    LOW);
-      // }
-      // poziceEnkod = 0;
-    // } else if (incomingByte == 49) {
-      // //open
-      // Serial.println("Otevirani ventilu ");
-      // PCF_01.write(pinPolarityRelay,   LOW);
-      // if (changeValve == 1) {
-        // PCF_01.write(pinRelayValve1,    LOW);
-      // } else if (changeValve == 2) {
-        // PCF_01.write(pinRelayValve2,    LOW);
-      // } else if (changeValve == 3) {
-        // PCF_01.write(pinRelayValve3,    LOW);
-      // } else if (changeValve == 4) {
-        // PCF_01.write(pinRelayValve4,    LOW);
-      // } else if (changeValve == 5) {
-        // PCF_01.write(pinRelayValve5,    LOW);
-      // }
-      // poziceEnkod = 0;
-    // } else {
-      // // digitalWrite(D3, LOW);
-    // }
-   // }
-    
-    
-  stavCLK = getStavCLK();
+      
   if (stavCLK != stavPred) {
     int valve;
     int stav;
