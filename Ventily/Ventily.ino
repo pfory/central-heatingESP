@@ -51,6 +51,8 @@ uint32_t heartBeat      = 0;
 
 int direction           = 0;
 
+bool blockSendingData   = false;
+
 #include <timer.h>
 auto timer = timer_create_default(); // create a timer with default settings
 Timer<> default_timer; // save as above
@@ -254,19 +256,22 @@ void setup() {
 void loop() {
   timer.tick(); // tick the timer
 
+  if (!blockSendingData) {
 #ifdef ota
-  ArduinoOTA.handle();
+    ArduinoOTA.handle();
 #endif
 
-  if (!client.connected()) {
-    reconnect();
+    if (!client.connected()) {
+      reconnect();
+    }
+    client.loop();
   }
-  client.loop();
-
+  
   stavCLK = getStavCLK();
 
   if (change) {
     change = false;
+    blockSendingData = true;
     ticker.attach(1, tick);
 
     DEBUG_PRINT("START ");
@@ -317,6 +322,7 @@ void valveStop() {
   PCF_01.write(pinRelayValve3,        HIGH);
   PCF_01.write(pinRelayValve4,        HIGH);
   PCF_01.write(pinRelayValve5,        HIGH);
+  blockSendingData = false;
 }
 
 int getStavCLK() {
@@ -373,31 +379,33 @@ void reconnect() {
   }
 }
 
-bool sendDataMQTT(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
-  SenderClass sender;
-  DEBUG_PRINTLN(F(" - I am sending data to MQTT"));
+// bool sendDataMQTT(void *) {
+  // digitalWrite(BUILTIN_LED, LOW);
+  // SenderClass sender;
+  // DEBUG_PRINTLN(F(" - I am sending data to MQTT"));
 
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  // sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
-  digitalWrite(BUILTIN_LED, HIGH);
-  return true;
-}
+  // digitalWrite(BUILTIN_LED, HIGH);
+  // return true;
+// }
 
 bool sendStatisticMQTT(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
-  //printSystemTime();
-  DEBUG_PRINTLN(F(" - I am sending statistic to MQTT"));
+  if (!blockSendingData) {
+    digitalWrite(BUILTIN_LED, LOW);
+    //printSystemTime();
+    DEBUG_PRINTLN(F(" - I am sending statistic to MQTT"));
 
-  SenderClass sender;
-  sender.add("VersionSWVentily",  VERSION);
-  sender.add("HeartBeat",         heartBeat++);
-  if (heartBeat % 10 == 0) sender.add("RSSI",              WiFi.RSSI());
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
+    SenderClass sender;
+    sender.add("VersionSWVentily",  VERSION);
+    sender.add("HeartBeat",         heartBeat++);
+    if (heartBeat % 10 == 0) sender.add("RSSI",              WiFi.RSSI());
+    
+    DEBUG_PRINTLN(F("Calling MQTT"));
+    
+    sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+    digitalWrite(BUILTIN_LED, HIGH);
+  }
   return true;
 }
 
