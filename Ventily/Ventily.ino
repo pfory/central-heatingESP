@@ -111,7 +111,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINT("set valve5 to ");
     setValve(val.toInt(), 4);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valveStop)).c_str())==0) {
-    DEBUG_PRINT("STOP");
+    DEBUG_PRINTLN("STOP");
     valveStop();
   }
 }
