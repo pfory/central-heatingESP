@@ -247,6 +247,7 @@ void setup() {
   
   activeValve = SOLAROUT;
   
+  valveStop();
 #ifdef test
   valveTest();
 #endif
@@ -307,7 +308,7 @@ void loop() {
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 bool checkStatus(void *) {
   if (poziceEnkod == poziceEnkodOld) {
-    valveStop();
+    //valveStop();
   } else {
     poziceEnkodOld = poziceEnkod;
   }
