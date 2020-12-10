@@ -44,7 +44,7 @@ uint32_t              runSecToday                 = 0;
 bool                  todayClear                  = false;
 bool                  dispClear                   = false;
 
-#define SIMTEMP
+//#define SIMTEMP
 
 #ifdef time
 WiFiUDP EthernetUdp;
