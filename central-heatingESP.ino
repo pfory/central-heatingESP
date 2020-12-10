@@ -481,11 +481,11 @@ void setup(void) {
   while (true) {
     dsInit();
     
-#ifdef SIMTEMP
-    if (1==0) {
-#else
+// #ifdef SIMTEMP
+    // if (1==0) {
+// #else
     if (sensorsIN.getDeviceCount()==0 || sensorsOUT.getDeviceCount()==0) {
-#endif
+// #endif
 #ifdef beep
     //peep.Delay(100,40,1,255);
 #endif
