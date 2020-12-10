@@ -39,18 +39,16 @@ float                 temp[15];
 
 byte                  relayStatus                 = RELAY_ON;
 
-uint32_t              runSecToday                  = 0;
+uint32_t              runSecToday                 = 0;
 
 bool                  todayClear                  = false;
 bool                  dispClear                   = false;
 
-//#define SIMTEMP
+#define SIMTEMP
 
 #ifdef time
 WiFiUDP EthernetUdp;
 static const char     ntpServerName[]       = "tik.cesnet.cz";
-//const int timeZone = 2;     // Central European Time
-//Central European Time (Frankfurt, Paris)
 TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
 TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
 Timezone CE(CEST, CET);
@@ -178,6 +176,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("NET INFO");
+    sendNetInfoMQTT();
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
     DEBUG_PRINT("Temperature from Meteo: ");
     DEBUG_PRINTLN(val.toFloat());
@@ -320,10 +322,18 @@ void setup(void) {
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
 
+  ticker.attach(1, tick);
+
   WiFiManager wifiManager;
+
+  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
 
   if (drd.detectDoubleReset()) {
     DEBUG_PRINTLN("Double reset detected, starting config portal...");
+    ticker.attach(0.2, tick);
     if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
       DEBUG_PRINTLN("failed to connect and hit timeout");
       delay(3000);
@@ -372,8 +382,6 @@ void setup(void) {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 
-  ticker.attach(1, tick);
-  
   WiFi.printDiag(Serial);
 
   //filesystem
@@ -387,21 +395,17 @@ void setup(void) {
   //reset settings - for testing
   //wifiManager.resetSettings();
 
-  IPAddress _ip,_gw,_sn;
-  _ip.fromString(static_ip);
-  _gw.fromString(static_gw);
-  _sn.fromString(static_sn);
+  // IPAddress _ip,_gw,_sn;
+  // _ip.fromString(static_ip);
+  // _gw.fromString(static_gw);
+  // _sn.fromString(static_sn);
 
-  wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
+  // wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
-  DEBUG_PRINTLN(_ip);
-  DEBUG_PRINTLN(_gw);
-  DEBUG_PRINTLN(_sn);
+  // DEBUG_PRINTLN(_ip);
+  // DEBUG_PRINTLN(_gw);
+  // DEBUG_PRINTLN(_sn);
 
-  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
-  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
   
   //DEBUG_PRINTLN(ESP.getFlashChipRealSize);
   //DEBUG_PRINTLN(ESP.getCpuFreqMHz);
@@ -414,6 +418,8 @@ void setup(void) {
     ESP.reset();
     delay(5000);
   } 
+
+  sendNetInfoMQTT();
 
 #ifdef time
   DEBUG_PRINTLN("Setup TIME");
@@ -479,10 +485,10 @@ void setup(void) {
     if (1==0) {
 #else
     if (sensorsIN.getDeviceCount()==0 || sensorsOUT.getDeviceCount()==0) {
-    #endif
-    #ifdef beep
+#endif
+#ifdef beep
     //peep.Delay(100,40,1,255);
-    #endif
+#endif
       DEBUG_PRINTLN(F("NO temperature sensor(s) DS18B20 found!!!!!!!!!"));
       DEBUG_PRINTLN(sensorsIN.getDeviceCount());
       DEBUG_PRINTLN(sensorsOUT.getDeviceCount());
@@ -571,7 +577,7 @@ void setup(void) {
   digitalWrite(BUILTIN_LED, HIGH);
 
   drd.stop();
-  
+
   DEBUG_PRINTLN(F("Setup end."));
 }
 
@@ -615,8 +621,10 @@ void loop(void) {
   }  
 #endif
 
+#ifdef time
   nulStat();
   displayClear();
+#endif
   
   testPumpProtect();
 }
@@ -644,6 +652,7 @@ void relay() {
   dispRelayStatus();
 }
 
+#ifdef time
 void nulStat() {
  //nulovani statistik o pulnoci
   if (hour()==0 && !todayClear) {
@@ -664,6 +673,7 @@ void displayClear() {
     dispClear = false;
   }
 }
+#endif
 
 void changeRelay(byte status) {
   digitalWrite(RELAYPIN, status);
@@ -929,7 +939,7 @@ void printTemp() {
 bool sendDataMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
-  DEBUG_PRINTLN(F(" - I am sending data to HA"));
+  DEBUG_PRINTLN(F("Data"));
 
   sender.add("tINKamna",            tempIN);
   sender.add("tOUTKamna",           tempOUT);
@@ -956,7 +966,7 @@ bool sendDataMQTT(void *) {
 bool sendStatisticMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
-  DEBUG_PRINTLN(F(" - I am sending statistic to MQTT"));
+  DEBUG_PRINTLN(F("Statistic"));
 
   SenderClass sender;
   sender.add("VersionSWCentral",              VERSION);
@@ -972,6 +982,24 @@ bool sendStatisticMQTT(void *) {
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
+
+
+void sendNetInfoMQTT() {
+  digitalWrite(BUILTIN_LED, LOW);
+  //printSystemTime();
+  DEBUG_PRINTLN(F("Net info"));
+
+  SenderClass sender;
+  sender.add("IP",              WiFi.localIP().toString().c_str());
+  sender.add("MAC",             WiFi.macAddress());
+  
+  DEBUG_PRINTLN(F("Calling MQTT"));
+  
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(BUILTIN_LED, HIGH);
+  return;
+}
+
 
 
 //display
@@ -1346,25 +1374,27 @@ void sendNTPpacket(IPAddress &address)
 
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected()) {
-    DEBUG_PRINT("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
-      DEBUG_PRINTLN("connected");
-      // Once connected, publish an announcement...
-      client.subscribe((String(mqtt_base) + "/#").c_str());
-      //client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str());
-      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
-      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str());
-      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str());
-      // client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str());
-      client.subscribe(mqtt_topic_weather);
-    } else {
-      DEBUG_PRINT("failed, rc=");
-      DEBUG_PRINT(client.state());
-      DEBUG_PRINTLN(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
+  if (!client.connected()) {
+    if (lastConnectAttempt == 0 || lastConnectAttempt + connectDelay < millis()) {
+      DEBUG_PRINT("Attempting MQTT connection...");
+      // Attempt to connect
+      if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
+        DEBUG_PRINTLN("connected");
+        // Once connected, publish an announcement...
+        client.subscribe((String(mqtt_base) + "/#").c_str());
+        client.subscribe(mqtt_topic_weather);
+      } else {
+        lastConnectAttempt = millis();
+        DEBUG_PRINT("failed, rc=");
+        DEBUG_PRINTLN(client.state());
+        // DEBUG_PRINTLN(" try again in 0.5 seconds");
+        // // Wait 5 seconds before retrying
+        // delay(500);
+        // attempts++;
+        // if (attempts>2) {
+          // break;
+        // }
+      }
     }
   }
 }
@@ -1533,8 +1563,10 @@ bool readConfig() {
 
 bool sendSOMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
+#ifdef time
   printSystemTime();
-  DEBUG_PRINTLN(F(" - I am sending sensor order to MQTT"));
+#endif
+  DEBUG_PRINTLN(F("Sensor order"));
   SenderClass sender;
   sender.add("so0", sensorOrder[0]);
   sender.add("so1", sensorOrder[1]);

@@ -19,7 +19,7 @@
 
 
 //SW name & version
-#define     VERSION                      "1.11"
+#define     VERSION                      "1.20"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -95,15 +95,16 @@ static const uint16_t         mqtt_port                      = 1883;
 static const char* const      mqtt_username                  = "datel";
 static const char* const      mqtt_key                       = "hanka12";
 static const char* const      mqtt_base                      = "/home/Corridor/esp06";
-static const char* const      static_ip                      = "192.168.1.109";
-static const char* const      static_gw                      = "192.168.1.1";
-static const char* const      static_sn                      = "255.255.255.0";
+//static const char* const      static_ip                      = "192.168.1.159";
+//static const char* const      static_gw                      = "192.168.1.1";
+//static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
 static const char* const      mqtt_topic_setTempON           = "tempON/set";
 static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff/set";
 static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm/set";
 static const char* const      mqtt_topic_relay_type_set      = "relayType/set";       //0 - MANUAL, 1 - AUTO
 static const char* const      mqtt_topic_restart             = "restart";
+static const char* const      mqtt_topic_netinfo             = "netinfo";
 static const char* const      mqtt_topic_sendSO              = "sorder";
 static const char* const      mqtt_topic_so0                 = "so0";
 static const char* const      mqtt_topic_so1                 = "so1";
@@ -118,6 +119,9 @@ static const char* const      mqtt_topic_so9                 = "so9";
 static const char* const      mqtt_topic_so10                = "so10";
 static const char* const      mqtt_topic_so11                = "so11";
 static const char* const      mqtt_topic_so12                = "so12";
+
+uint32_t              connectDelay                = 30000; //30s
+uint32_t              lastConnectAttempt          = 0;  
 
 #define MIN_UNIT                            "m"
 
