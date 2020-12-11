@@ -272,7 +272,7 @@ void loop() {
 
   if (change) {
     change = false;
-    blockSendingData = true;
+    //blockSendingData = true;
     ticker.attach(1, tick);
 
     DEBUG_PRINT("START ");

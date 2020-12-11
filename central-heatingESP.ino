@@ -1607,6 +1607,9 @@ void dsInit(void) {
     DEBUG_PRINTLN(" sensor(s) found");
   }
 
+  sensorsIN.getAddress(inThermometer, 0); 
+  sensorsOUT.getAddress(outThermometer, 0); 
+
   // Loop through each device, print out address
   for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
       // Search the wire for address
