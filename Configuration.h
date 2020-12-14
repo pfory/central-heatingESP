@@ -37,7 +37,7 @@
 #define ota
 #ifdef ota
 #include <ArduinoOTA.h>
-#define HOSTNAMEOTA   "Central"
+#define HOSTNAMEOTA   SW_NAME VERSION
 #endif
 
 #define PIR
@@ -180,6 +180,11 @@ uint32_t              lastConnectAttempt          = 0;
 #define RUNMINTODAY_Y                       3
 #define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
+
+#ifdef time
+#define TIMEX                               0
+#define TIMEY                               3
+#endif
 
 // #define DISPLAY_MAIN                         0
 // #define DISPLAY_T_DIFF_ON                    2

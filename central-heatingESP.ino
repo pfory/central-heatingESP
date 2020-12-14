@@ -54,8 +54,6 @@ TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};   
 Timezone CE(CEST, CET);
 unsigned int          localPort             = 8888;  // local port to listen for UDP packets
 time_t getNtpTime();
-#define TIMEX   0
-#define TIMEY   3
 #endif
 
 #define beep
@@ -80,7 +78,7 @@ struct StoreStruct {
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 #define PRINT_SPACE  lcd.print(" ");
 volatile bool showDoubleDot                 = false;
-#define DISPLAY_MAIN                         0
+//#define DISPLAY_MAIN                         0
 
 //navrhar - https://maxpromer.github.io/LCD-Character-Creator/
 byte customChar[] = {
@@ -97,6 +95,7 @@ byte customChar[] = {
 
 DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
 
+ADC_MODE(ADC_VCC); //vcc read
 
 const byte ROWS = 4; //four rows
 const byte COLS = 4; //three columns
@@ -106,8 +105,8 @@ char keys[ROWS][COLS]                 = {
                                             {'7','8','9','C'},
                                             {'*','0','#','D'}
 };
-byte rowPins[ROWS] = {7,6,5,4}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {3,2,1,0}; //connect to the column pinouts of the keypad
+byte rowPins[ROWS]                    = {7,6,5,4}; //connect to the row pinouts of the keypad
+byte colPins[COLS]                    = {3,2,1,0}; //connect to the column pinouts of the keypad
 
 //Keypad_I2C keypad = Keypad_I2C( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR );
 Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR); 
@@ -123,8 +122,7 @@ auto timer = timer_create_default(); // create a timer with default settings
 Timer<> default_timer; // save as above
 
 
-void tick()
-{
+void tick() {
   //toggle state
   int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
   digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
@@ -294,8 +292,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-bool isDebugEnabled()
-{
+bool isDebugEnabled() {
 #ifdef verbose
   return true;
 #endif // verbose
@@ -315,6 +312,8 @@ void printMessageToLCD(char* t, String v) {
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+WiFiManager wifiManager;
+
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
   SERIAL_BEGIN;
@@ -322,14 +321,27 @@ void setup(void) {
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
 
+  pinMode(RELAYPIN, OUTPUT);
+  digitalWrite(RELAYPIN, relayStatus);
+  delay(5000);
+
   ticker.attach(1, tick);
 
-  WiFiManager wifiManager;
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
 
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
   wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
+
+  lcd.init();               // initialize the lcd 
+  lcd.backlight();
+  lcd.home();
+  lcd.print(SW_NAME);
+  PRINT_SPACE
+  lcd.print(VERSION);
+  lcd.createChar(0, customChar);
+
 
   if (drd.detectDoubleReset()) {
     DEBUG_PRINTLN("Double reset detected, starting config portal...");
@@ -343,21 +355,10 @@ void setup(void) {
     }
   }
 
-  
-  lcd.init();               // initialize the lcd 
-  lcd.backlight();
-  lcd.home();
-  lcd.print(SW_NAME);
-  PRINT_SPACE
-  lcd.print(VERSION);
-  lcd.createChar(0, customChar);
-
   pinMode(ONE_WIRE_BUS_IN, INPUT);
   pinMode(ONE_WIRE_BUS_OUT, INPUT);
   pinMode(ONE_WIRE_BUS_UT, INPUT);
 
-  pinMode(RELAYPIN, OUTPUT);
-  digitalWrite(RELAYPIN, relayStatus);
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(BUZZERPIN, OUTPUT);
 #ifdef PIR
@@ -629,7 +630,7 @@ void loop(void) {
   testPumpProtect();
 }
 
-/////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
+//---------------------------------------------M A I N  C O N T R O L ------------------------------------------------
 void relay() {
   if (tempIN<-100 || tempOUT<-100) {
     relayStatus = RELAY_ON;
@@ -970,6 +971,7 @@ bool sendStatisticMQTT(void *) {
 
   SenderClass sender;
   sender.add("VersionSWCentral",              VERSION);
+  sender.add("Napeti",  ESP.getVcc());
   sender.add("HeartBeat",                     heartBeat++);
   if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
   sender.add(String("tempON"),                storage.tempON);
@@ -1002,7 +1004,7 @@ void sendNetInfoMQTT() {
 
 
 
-//display
+//---------------------------------------------D I S P L A Y ------------------------------------------------
 /*
   01234567890123456789
   --------------------
