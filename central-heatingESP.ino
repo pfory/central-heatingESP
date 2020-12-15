@@ -323,6 +323,7 @@ void setup(void) {
   digitalWrite(RELAYPIN, relayStatus);
   delay(5000);
 
+  pinMode(BUILTIN_LED, OUTPUT);
   ticker.attach(1, tick);
 
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
@@ -357,7 +358,6 @@ void setup(void) {
   pinMode(ONE_WIRE_BUS_OUT, INPUT);
   pinMode(ONE_WIRE_BUS_UT, INPUT);
 
-  pinMode(BUILTIN_LED, OUTPUT);
   pinMode(BUZZERPIN, OUTPUT);
 #ifdef PIR
   pinMode(PIRPIN, INPUT);
