@@ -23,8 +23,6 @@ DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[NUMBER_OF_DEVICES];
 DeviceAddress tempDeviceAddress;
 
-//DeviceAddress tempDeviceAddresses[NUMBER_OF_DEVICES];
-
 bool firstTempMeasDone                      = false;
 
 float sensor[NUMBER_OF_DEVICES];
@@ -392,26 +390,6 @@ void setup(void) {
   printf("SPIFFS: %lu of %lu bytes used.\n",
          fs_info.usedBytes, fs_info.totalBytes);
          
-         
-  //reset settings - for testing
-  //wifiManager.resetSettings();
-
-  // IPAddress _ip,_gw,_sn;
-  // _ip.fromString(static_ip);
-  // _gw.fromString(static_gw);
-  // _sn.fromString(static_sn);
-
-  // wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
-  
-  // DEBUG_PRINTLN(_ip);
-  // DEBUG_PRINTLN(_gw);
-  // DEBUG_PRINTLN(_sn);
-
-  
-  //DEBUG_PRINTLN(ESP.getFlashChipRealSize);
-  //DEBUG_PRINTLN(ESP.getCpuFreqMHz);
-  //WiFi.begin(ssid, password);
-  
   if (!wifiManager.autoConnect(AUTOCONNECTNAME, AUTOCONNECTPWD)) { 
     DEBUG_PRINTLN("failed to connect and hit timeout");
     delay(3000);
@@ -1389,13 +1367,6 @@ void reconnect() {
         lastConnectAttempt = millis();
         DEBUG_PRINT("failed, rc=");
         DEBUG_PRINTLN(client.state());
-        // DEBUG_PRINTLN(" try again in 0.5 seconds");
-        // // Wait 5 seconds before retrying
-        // delay(500);
-        // attempts++;
-        // if (attempts>2) {
-          // break;
-        // }
       }
     }
   }
