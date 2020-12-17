@@ -3,7 +3,6 @@
 
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <Ticker.h>
 #include "Sender.h"
 #include <Wire.h>
 #include <OneWire.h>
