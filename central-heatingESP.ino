@@ -34,7 +34,6 @@ float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
 float                 tempUT[12];              
 bool                  tempRefresh                 = false;
-uint32_t              heartBeat                   = 0;
 float                 temp[15];              
 
 byte                  relayStatus                 = RELAY_ON;
@@ -46,17 +45,6 @@ bool                  dispClear                   = false;
 
 //#define SIMTEMP
 
-#ifdef time
-WiFiUDP EthernetUdp;
-static const char     ntpServerName[]       = "tik.cesnet.cz";
-TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
-TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
-Timezone CE(CEST, CET);
-unsigned int          localPort             = 8888;  // local port to listen for UDP packets
-time_t getNtpTime();
-#define TIMEX   0
-#define TIMEY   3
-#endif
 
 #define beep
 // #ifdef beep
@@ -94,10 +82,6 @@ byte customChar[] = {
   B00000
 };
 
-
-DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
-
-
 const byte ROWS = 4; //four rows
 const byte COLS = 4; //three columns
 char keys[ROWS][COLS]                 = {
@@ -115,30 +99,6 @@ Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR);
 
 byte displayVar       = 1;
 char displayVarSub    = ' ';
-
-//for LED status
-Ticker ticker;
-
-auto timer = timer_create_default(); // create a timer with default settings
-Timer<> default_timer; // save as above
-
-
-void tick()
-{
-  //toggle state
-  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
-  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
-}
-
-//gets called when WiFiManager enters configuration mode
-void configModeCallback (WiFiManager *myWiFiManager) {
-  DEBUG_PRINTLN("Entered config mode");
-  DEBUG_PRINTLN(WiFi.softAPIP());
-  //if you used auto generated SSID, print it
-  DEBUG_PRINTLN(myWiFiManager->getConfigPortalSSID());
-  //entered config mode, make led toggle faster
-  ticker.attach(0.2, tick);
-}
 
 //MQTT callback
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -180,6 +140,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("NET INFO");
     sendNetInfoMQTT();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("NET INFO");
+    startConfigPortal();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("NET INFO");
+    stopConfigPortal();
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
     DEBUG_PRINT("Temperature from Meteo: ");
     DEBUG_PRINTLN(val.toFloat());
@@ -208,98 +176,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINTLN(val.toInt());
     storage.tempAlarm = val.toInt();
     saveConfig();
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_sendSO)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("send sensor order");
-    void * a;
-    sendSOMQTT(a);
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so0)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 0 to ");
-    sensorOrder[0]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so1)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 1 to ");
-    sensorOrder[1]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so2)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 2 to ");
-    sensorOrder[2]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so3)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 3 to ");
-    sensorOrder[3]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so4)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 4 to ");
-    sensorOrder[4]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so5)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 5 to ");
-    sensorOrder[5]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so6)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 6 to ");
-    sensorOrder[6]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so7)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 7 to ");
-    sensorOrder[7]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so8)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 8 to ");
-    sensorOrder[8]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so9)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 9 to ");
-    sensorOrder[9]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so10)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 10 to ");
-    sensorOrder[10]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so11)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 11 to ");
-    sensorOrder[11]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_so12)).c_str())==0) {
-    printMessageToLCD(topic, val);
-    DEBUG_PRINT("set sensor order 12 to ");
-    sensorOrder[12]=val.toInt();
-    DEBUG_PRINT(val.toInt());
-    saveConfig();  
   }
-}
-
-bool isDebugEnabled()
-{
-#ifdef verbose
-  return true;
-#endif // verbose
-  return false;
 }
 
 void printMessageToLCD(char* t, String v) {
@@ -311,38 +188,9 @@ void printMessageToLCD(char* t, String v) {
   lcd.clear();
 }
 
-
-WiFiClient espClient;
-PubSubClient client(espClient);
-
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
-  SERIAL_BEGIN;
-  DEBUG_PRINT(F(SW_NAME));
-  DEBUG_PRINT(F(" "));
-  DEBUG_PRINTLN(F(VERSION));
-
-  ticker.attach(1, tick);
-
-  WiFiManager wifiManager;
-
-  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
-  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
-
-  if (drd.detectDoubleReset()) {
-    DEBUG_PRINTLN("Double reset detected, starting config portal...");
-    ticker.attach(0.2, tick);
-    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
-      DEBUG_PRINTLN("failed to connect and hit timeout");
-      delay(3000);
-      //reset and try again, or maybe put it to deep sleep
-      ESP.reset();
-      delay(5000);
-    }
-  }
-
+  preSetup();
   
   lcd.init();               // initialize the lcd 
   lcd.backlight();
@@ -364,26 +212,6 @@ void setup(void) {
   pinMode(PIRPIN, INPUT);
 #endif
 
-  rst_info *_reset_info = ESP.getResetInfoPtr();
-  uint8_t _reset_reason = _reset_info->reason;
-  DEBUG_PRINT("Boot-Mode: ");
-  DEBUG_PRINTLN(_reset_reason);
-  heartBeat = _reset_reason;
-  
-  /*
- REASON_DEFAULT_RST             = 0      normal startup by power on 
- REASON_WDT_RST                 = 1      hardware watch dog reset 
- REASON_EXCEPTION_RST           = 2      exception reset, GPIO status won't change 
- REASON_SOFT_WDT_RST            = 3      software watch dog reset, GPIO status won't change 
- REASON_SOFT_RESTART            = 4      software restart ,system_restart , GPIO status won't change 
- REASON_DEEP_SLEEP_AWAKE        = 5      wake up from deep-sleep 
- REASON_EXT_SYS_RST             = 6      external system reset 
-  */
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
-
-  WiFi.printDiag(Serial);
-
   //filesystem
   SPIFFS.begin();
   FSInfo fs_info;
@@ -392,73 +220,6 @@ void setup(void) {
          fs_info.usedBytes, fs_info.totalBytes);
          
          
-  //reset settings - for testing
-  //wifiManager.resetSettings();
-
-  // IPAddress _ip,_gw,_sn;
-  // _ip.fromString(static_ip);
-  // _gw.fromString(static_gw);
-  // _sn.fromString(static_sn);
-
-  // wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
-  
-  // DEBUG_PRINTLN(_ip);
-  // DEBUG_PRINTLN(_gw);
-  // DEBUG_PRINTLN(_sn);
-
-  
-  //DEBUG_PRINTLN(ESP.getFlashChipRealSize);
-  //DEBUG_PRINTLN(ESP.getCpuFreqMHz);
-  //WiFi.begin(ssid, password);
-  
-  if (!wifiManager.autoConnect(AUTOCONNECTNAME, AUTOCONNECTPWD)) { 
-    DEBUG_PRINTLN("failed to connect and hit timeout");
-    delay(3000);
-    //reset and try again, or maybe put it to deep sleep
-    ESP.reset();
-    delay(5000);
-  } 
-
-  sendNetInfoMQTT();
-
-#ifdef time
-  DEBUG_PRINTLN("Setup TIME");
-  lcd.setCursor(0,1);
-  lcd.print("Setup time...");
-  EthernetUdp.begin(localPort);
-  DEBUG_PRINT("Local port: ");
-  DEBUG_PRINTLN(EthernetUdp.localPort());
-  DEBUG_PRINTLN("waiting for sync");
-  setSyncProvider(getNtpTime);
-  setSyncInterval(300);
-  
-  printSystemTime();
-#endif
-
-#ifdef ota
-  ArduinoOTA.setHostname("Central heating");
-
-  ArduinoOTA.onStart([]() {
-    DEBUG_PRINTLN("Start updating ");
-  });
-  ArduinoOTA.onEnd([]() {
-   DEBUG_PRINTLN("\nEnd");
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    DEBUG_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    DEBUG_PRINTF("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
-  });
-  ArduinoOTA.begin();
-#endif
-
-
 #ifdef beep
   //peep.Delay(100,40,1,255);
   //tone(BUZZERPIN, 5000, 5);
@@ -560,6 +321,7 @@ void setup(void) {
   delay(3000);
   lcd.clear();
 
+#ifdef timers
   //setup timers
   timer.every(SEND_DELAY,     sendDataMQTT);
   timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
@@ -568,17 +330,19 @@ void setup(void) {
 #ifdef time  
   timer.every(500,            displayTime);
 #endif
+#endif
   void * a;
+  reconnect(a);
   sendStatisticMQTT(a);
+  sendNetInfoMQTT();
   
-
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
 
   drd.stop();
 
-  DEBUG_PRINTLN(F("Setup end."));
+  DEBUG_PRINTLN(F("SETUP END......................."));
 }
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
@@ -590,7 +354,6 @@ void loop(void) {
   ArduinoOTA.handle();
 #endif
 
-  reconnect();
   client.loop();
 
   display();
@@ -679,17 +442,6 @@ void changeRelay(byte status) {
   digitalWrite(RELAYPIN, status);
   sendRelayMQTT(status);
 }
-
-void sendRelayMQTT(byte akce) {
-  digitalWrite(BUILTIN_LED, LOW);
-  SenderClass sender;
-  sender.add("relayChange", akce);
- 
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  
-  digitalWrite(BUILTIN_LED, HIGH);
-}
-
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
@@ -938,69 +690,58 @@ void printTemp() {
 
 bool sendDataMQTT(void *) {
   digitalWrite(BUILTIN_LED, LOW);
-  SenderClass sender;
   DEBUG_PRINTLN(F("Data"));
 
-  sender.add("tINKamna",            tempIN);
-  sender.add("tOUTKamna",           tempOUT);
-  sender.add("sPumpKamna/status",   relayStatus==RELAY_ON ? 1 : 0);
-  sender.add("t0",                  tempUT[0]);
-  sender.add("t1",                  tempUT[1]);
-  sender.add("t2",                  tempUT[2]);
-  sender.add("t3",                  tempUT[3]);
-  sender.add("t4",                  tempUT[4]);
-  sender.add("t5",                  tempUT[5]);
-  sender.add("t6",                  tempUT[6]);
-  sender.add("t7",                  tempUT[7]);
-  sender.add("t8",                  tempUT[8]);
-  sender.add("t9",                  tempUT[9]);
-  sender.add("t10",                 tempUT[10]);
-  sender.add("t11",                 tempUT[11]);
-
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  client.publish((String(mqtt_base) + "/tINKamna").c_str(), String(tempIN).c_str());
+  client.publish((String(mqtt_base) + "/tOUTKamna").c_str(), String(tempOUT).c_str());
+  client.publish((String(mqtt_base) + "/sPumpKamna/status").c_str(), String(relayStatus==RELAY_ON ? 1 : 0).c_str());
+ 
+  // sender.add("t0",                  tempUT[0]);
+  // sender.add("t1",                  tempUT[1]);
+  // sender.add("t2",                  tempUT[2]);
+  // sender.add("t3",                  tempUT[3]);
+  // sender.add("t4",                  tempUT[4]);
+  // sender.add("t5",                  tempUT[5]);
+  // sender.add("t6",                  tempUT[6]);
+  // sender.add("t7",                  tempUT[7]);
+  // sender.add("t8",                  tempUT[8]);
+  // sender.add("t9",                  tempUT[9]);
+  // sender.add("t10",                 tempUT[10]);
+  // sender.add("t11",                 tempUT[11]);
 
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
-bool sendStatisticMQTT(void *) {
+// bool sendSOMQTT(void *) {
+  // digitalWrite(BUILTIN_LED, LOW);
+  // DEBUG_PRINTLN(F("Sensor order"));
+
+  // sender.add("so0", sensorOrder[0]);
+  // sender.add("so1", sensorOrder[1]);
+  // sender.add("so2", sensorOrder[2]);
+  // sender.add("so3", sensorOrder[3]);
+  // sender.add("so4", sensorOrder[4]);
+  // sender.add("so5", sensorOrder[5]);
+  // sender.add("so6", sensorOrder[6]);
+  // sender.add("so7", sensorOrder[7]);
+  // sender.add("so8", sensorOrder[8]);
+  // sender.add("so9", sensorOrder[9]);
+  // sender.add("so10", sensorOrder[10]);
+  // sender.add("so11", sensorOrder[11]);
+  // sender.add("so11", sensorOrder[12]);
+
+  // digitalWrite(BUILTIN_LED, HIGH);
+  // return true;
+// }
+
+void sendRelayMQTT(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
-  //printSystemTime();
-  DEBUG_PRINTLN(F("Statistic"));
 
-  SenderClass sender;
-  sender.add("VersionSWCentral",              VERSION);
-  sender.add("HeartBeat",                     heartBeat++);
-  if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
-  sender.add(String("tempON"),                storage.tempON);
-  sender.add(String("tempOFFDiff"),           storage.tempOFFDiff);
-  sender.add(String("relayType"),             storage.relayType);
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  client.publish((String(mqtt_base) + "/relayChange").c_str(), String(akce).c_str());
+ 
   digitalWrite(BUILTIN_LED, HIGH);
-  return true;
 }
-
-
-void sendNetInfoMQTT() {
-  digitalWrite(BUILTIN_LED, LOW);
-  //printSystemTime();
-  DEBUG_PRINTLN(F("Net info"));
-
-  SenderClass sender;
-  sender.add("IP",              WiFi.localIP().toString().c_str());
-  sender.add("MAC",             WiFi.macAddress());
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
-  return;
-}
-
-
 
 //display
 /*
@@ -1273,64 +1014,6 @@ void printAddress(DeviceAddress deviceAddress)
 }
 
 #ifdef time
-/*-------- NTP code ----------*/
-const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
-byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
-
-time_t getNtpTime()
-{
-  //IPAddress ntpServerIP; // NTP server's ip address
-  IPAddress ntpServerIP = IPAddress(195, 113, 144, 201);
-
-  while (EthernetUdp.parsePacket() > 0) ; // discard any previously received packets
-  DEBUG_PRINTLN("Transmit NTP Request");
-  // get a random server from the pool
-  //WiFi.hostByName(ntpServerName, ntpServerIP);
-  DEBUG_PRINT(ntpServerName);
-  DEBUG_PRINT(": ");
-  DEBUG_PRINTLN(ntpServerIP);
-  sendNTPpacket(ntpServerIP);
-  uint32_t beginWait = millis();
-  while (millis() - beginWait < 1500) {
-    int size = EthernetUdp.parsePacket();
-    if (size >= NTP_PACKET_SIZE) {
-      DEBUG_PRINTLN("Receive NTP Response");
-      EthernetUdp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
-      unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-      unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
-      // combine the four bytes (two words) into a long integer
-      // this is NTP time (seconds since Jan 1 1900):
-      unsigned long secsSince1900 = highWord << 16 | lowWord;
-      DEBUG_PRINT("Seconds since Jan 1 1900 = " );
-      DEBUG_PRINTLN(secsSince1900);
-
-      // now convert NTP time into everyday time:
-      DEBUG_PRINT("Unix time = ");
-      // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-      const unsigned long seventyYears = 2208988800UL;
-      // subtract seventy years:
-      unsigned long epoch = secsSince1900 - seventyYears;
-      // print Unix time:
-      DEBUG_PRINTLN(epoch);
-	  
-      TimeChangeRule *tcr;
-      time_t utc;
-      utc = epoch;
-      
-      return CE.toLocal(utc, &tcr);
-      //return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
-    }
-  }
-  DEBUG_PRINTLN("No NTP Response :-(");
-  return 0; // return 0 if unable to get the time
-}
-
-void printSystemTime(){
-  char buffer[20];
-  sprintf(buffer, "%02d.%02d.%4d %02d:%02d:%02d", day(), month(), year(), hour(), minute(), second());
-  DEBUG_PRINT(buffer);
-}
-
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
   char buffer[6];
@@ -1348,56 +1031,7 @@ bool displayTime(void *) {
   return true;
 }
 
-// send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress &address)
-{
-  // set all bytes in the buffer to 0
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  packetBuffer[12] = 49;
-  packetBuffer[13] = 0x4E;
-  packetBuffer[14] = 49;
-  packetBuffer[15] = 52;
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  EthernetUdp.beginPacket(address, 123); //NTP requests are to port 123
-  EthernetUdp.write(packetBuffer, NTP_PACKET_SIZE);
-  EthernetUdp.endPacket();
-}
 #endif
-
-void reconnect() {
-  // Loop until we're reconnected
-  if (!client.connected()) {
-    if (lastConnectAttempt == 0 || lastConnectAttempt + connectDelay < millis()) {
-      DEBUG_PRINT("Attempting MQTT connection...");
-      // Attempt to connect
-      if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
-        DEBUG_PRINTLN("connected");
-        // Once connected, publish an announcement...
-        client.subscribe((String(mqtt_base) + "/#").c_str());
-        client.subscribe(mqtt_topic_weather);
-      } else {
-        lastConnectAttempt = millis();
-        DEBUG_PRINT("failed, rc=");
-        DEBUG_PRINTLN(client.state());
-        // DEBUG_PRINTLN(" try again in 0.5 seconds");
-        // // Wait 5 seconds before retrying
-        // delay(500);
-        // attempts++;
-        // if (attempts>2) {
-          // break;
-        // }
-      }
-    }
-  }
-}
 
 void displayValue(int x, int y, float value, byte cela, byte des) {
   char buffer [18];
@@ -1421,17 +1055,6 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
     lcd.print(abs((int)(value*(10*des))%(10*des)));
   }
 }
-
-// void PIREvent() {
-  // if (digitalRead(PIRPIN)==1) {
-    // DEBUG_PRINTLN("DISPLAY_ON");
-    // lcd.backlight();
-  // } else {
-    // DEBUG_PRINTLN("DISPLAY OFF");
-    // lcd.noBacklight();
-  // }
-// }
-
 
 bool saveConfig() {
   DEBUG_PRINTLN(F("Saving config..."));
@@ -1561,34 +1184,6 @@ bool readConfig() {
   return false;
 }
 
-bool sendSOMQTT(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
-#ifdef time
-  printSystemTime();
-#endif
-  DEBUG_PRINTLN(F("Sensor order"));
-  SenderClass sender;
-  sender.add("so0", sensorOrder[0]);
-  sender.add("so1", sensorOrder[1]);
-  sender.add("so2", sensorOrder[2]);
-  sender.add("so3", sensorOrder[3]);
-  sender.add("so4", sensorOrder[4]);
-  sender.add("so5", sensorOrder[5]);
-  sender.add("so6", sensorOrder[6]);
-  sender.add("so7", sensorOrder[7]);
-  sender.add("so8", sensorOrder[8]);
-  sender.add("so9", sensorOrder[9]);
-  sender.add("so10", sensorOrder[10]);
-  sender.add("so11", sensorOrder[11]);
-  sender.add("so11", sensorOrder[12]);
-
-  //noInterrupts();
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  //interrupts();
-  digitalWrite(BUILTIN_LED, HIGH);
-  return true;
-}
-
 bool calcStat(void *) {  //run each second from timer
   if (relayStatus == RELAY_ON) {
     runSecToday ++;
@@ -1626,4 +1221,21 @@ void dsInit(void) {
   sensorsUT.setWaitForConversion(false);
 
   //lcd.clear();
+}
+
+bool reconnect(void *) {
+  if (!client.connected()) {
+    DEBUG_PRINT("Attempting MQTT connection...");
+    // Attempt to connect
+     if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "Dead", false)) {
+      client.subscribe((String(mqtt_base) + "/#").c_str());
+      client.publish((String(mqtt_base) + "/connected").c_str(), "");
+      client.subscribe(mqtt_topic_weather);
+      DEBUG_PRINTLN("connected");
+    } else {
+      DEBUG_PRINT("failed, rc=");
+      DEBUG_PRINTLN(client.state());
+    }
+  }
+  return true;
 }

@@ -19,26 +19,13 @@
 
 
 //SW name & version
-#define     VERSION                      "1.20"
+#define     VERSION                      "1.30"
 #define     SW_NAME                      "Central heat"
 
 #define timers
 #define ota
 #define verbose
 #define time
-#ifdef time
-#include <TimeLib.h>
-#include <Timezone.h>
-#endif
-
-#define AUTOCONNECTNAME   HOSTNAMEOTA
-#define AUTOCONNECTPWD    "password"
-
-#define ota
-#ifdef ota
-#include <ArduinoOTA.h>
-#define HOSTNAMEOTA   "Central"
-#endif
 
 #define PIR
 
@@ -63,41 +50,14 @@ DALLAS temperature sensor
 keyboard
 */
 
-
-#define verbose
-#ifdef verbose
-  #define DEBUG_PRINT(x)         Serial.print (x)
-  #define DEBUG_PRINTDEC(x)      Serial.print (x, DEC)
-  #define DEBUG_PRINTLN(x)       Serial.println (x)
-  #define DEBUG_PRINTF(x, y)     Serial.printf (x, y)
-  #define DEBUG_PRINTHEX(x)      Serial.print (x, HEX)
-  #define PORTSPEED 115200
-  #define SERIAL_BEGIN           Serial.begin(PORTSPEED);
-#else
-  #define DEBUG_PRINT(x)
-  #define DEBUG_PRINTDEC(x)
-  #define DEBUG_PRINTLN(x)
-  #define DEBUG_PRINTF(x, y)
-#endif 
-
-
-// Number of seconds after reset during which a
-// subseqent reset will be considered a double reset.
-#define DRD_TIMEOUT 2
-// RTC Memory Address for the DoubleResetDetector to use
-#define DRD_ADDRESS 0
-
 #define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
-#define CONNECT_TIMEOUT 120 //jak dlouho se ceka na spojeni nez se aktivuje config portal
+#define CONNECT_TIMEOUT 5 //jak dlouho se ceka na spojeni nez se aktivuje config portal
 
 static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;
 static const char* const      mqtt_username                  = "datel";
 static const char* const      mqtt_key                       = "hanka12";
 static const char* const      mqtt_base                      = "/home/Corridor/esp06";
-//static const char* const      static_ip                      = "192.168.1.159";
-//static const char* const      static_gw                      = "192.168.1.1";
-//static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
 static const char* const      mqtt_topic_setTempON           = "tempON/set";
 static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff/set";
@@ -105,23 +65,23 @@ static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm/set";
 static const char* const      mqtt_topic_relay_type_set      = "relayType/set";       //0 - MANUAL, 1 - AUTO
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_netinfo             = "netinfo";
-static const char* const      mqtt_topic_sendSO              = "sorder";
-static const char* const      mqtt_topic_so0                 = "so0";
-static const char* const      mqtt_topic_so1                 = "so1";
-static const char* const      mqtt_topic_so2                 = "so2";
-static const char* const      mqtt_topic_so3                 = "so3";
-static const char* const      mqtt_topic_so4                 = "so4";
-static const char* const      mqtt_topic_so5                 = "so5";
-static const char* const      mqtt_topic_so6                 = "so6";
-static const char* const      mqtt_topic_so7                 = "so7";
-static const char* const      mqtt_topic_so8                 = "so8";
-static const char* const      mqtt_topic_so9                 = "so9";
-static const char* const      mqtt_topic_so10                = "so10";
-static const char* const      mqtt_topic_so11                = "so11";
-static const char* const      mqtt_topic_so12                = "so12";
+static const char* const      mqtt_config_portal             = "config";
+static const char* const      mqtt_config_portal_stop        = "disconfig";
 
-uint32_t              connectDelay                = 30000; //30s
-uint32_t              lastConnectAttempt          = 0;  
+// static const char* const      mqtt_topic_sendSO              = "sorder";
+// static const char* const      mqtt_topic_so0                 = "so0";
+// static const char* const      mqtt_topic_so1                 = "so1";
+// static const char* const      mqtt_topic_so2                 = "so2";
+// static const char* const      mqtt_topic_so3                 = "so3";
+// static const char* const      mqtt_topic_so4                 = "so4";
+// static const char* const      mqtt_topic_so5                 = "so5";
+// static const char* const      mqtt_topic_so6                 = "so6";
+// static const char* const      mqtt_topic_so7                 = "so7";
+// static const char* const      mqtt_topic_so8                 = "so8";
+// static const char* const      mqtt_topic_so9                 = "so9";
+// static const char* const      mqtt_topic_so10                = "so10";
+// static const char* const      mqtt_topic_so11                = "so11";
+// static const char* const      mqtt_topic_so12                = "so12";
 
 #define MIN_UNIT                            "m"
 
@@ -181,6 +141,9 @@ uint32_t              lastConnectAttempt          = 0;
 #define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
 
+#define TIMEX                               0
+#define TIMEY                               3
+
 // #define DISPLAY_MAIN                         0
 // #define DISPLAY_T_DIFF_ON                    2
 // #define DISPLAY_T_DIFF_OFF                   3
@@ -192,9 +155,12 @@ uint32_t              lastConnectAttempt          = 0;
 //#define SHOW_INFO_DELAY                     5000  //
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define MEAS_DELAY                          2000  //mereni teplot
+#define CONNECT_DELAY                       5000 //ms
                                      
 #define TEMP_ERR                            -127
 
 #define CFGFILE                             "/config.txt"
+
+#include <fce.h>
 
 #endif
