@@ -3,11 +3,10 @@
 
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include "Sender.h"
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include "FS.h"
+#include <FS.h>
 #include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 #include <Keypad_I2C.h>
 #include <Keypad.h>          // GDY120705
@@ -15,10 +14,12 @@
 #include <LiquidCrystal_I2C.h>
 #include <Ticker.h>
 #include <timer.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 
 //SW name & version
-#define     VERSION                      "1.31"
+#define     VERSION                      "1.32"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -30,15 +31,6 @@
 /*
 --------------------------------------------------------------------------------------------------------------------------
 
-Version history:
-0.9  - prechod na ESP8266
-0.67 - 2.11.2017 - obsluha klavesnice, config
-0.66 - 2.11.2017 - nastaveni hodin
-0.64 - 11.9.2017 - obsluha displeje, build IDE 1.8.3
-0.5             - i2c keyboard
-0.4 - 23.2.2016 - add RTC, prenos teploty na satelit
-0.3 - 16.1.2015
-
 --------------------------------------------------------------------------------------------------------------------------
 HW
 ESP8266 Wemos D1
@@ -47,6 +39,7 @@ I2C display
 DALLAS temperature sensor
 keyboard
 */
+
 
 #define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
 #define CONNECT_TIMEOUT 5 //jak dlouho se ceka na spojeni nez se aktivuje config portal
@@ -66,20 +59,6 @@ static const char* const      mqtt_topic_netinfo             = "netinfo";
 static const char* const      mqtt_config_portal             = "config";
 static const char* const      mqtt_config_portal_stop        = "disconfig";
 
-// static const char* const      mqtt_topic_sendSO              = "sorder";
-// static const char* const      mqtt_topic_so0                 = "so0";
-// static const char* const      mqtt_topic_so1                 = "so1";
-// static const char* const      mqtt_topic_so2                 = "so2";
-// static const char* const      mqtt_topic_so3                 = "so3";
-// static const char* const      mqtt_topic_so4                 = "so4";
-// static const char* const      mqtt_topic_so5                 = "so5";
-// static const char* const      mqtt_topic_so6                 = "so6";
-// static const char* const      mqtt_topic_so7                 = "so7";
-// static const char* const      mqtt_topic_so8                 = "so8";
-// static const char* const      mqtt_topic_so9                 = "so9";
-// static const char* const      mqtt_topic_so10                = "so10";
-// static const char* const      mqtt_topic_so11                = "so11";
-// static const char* const      mqtt_topic_so12                = "so12";
 
 #define MIN_UNIT                            "m"
 
@@ -97,7 +76,6 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 #define RELAY_STATUSY                       3
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
-#define STATUS_LED                          BUILTIN_LED //status LED
 #define ONE_WIRE_BUS_IN                     D6 //MISO                       GPIO12
 #define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
 #define ONE_WIRE_BUS_UT                     D7 //MOSI                       GPIO13
@@ -151,11 +129,11 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
  
 #define SAFETY_ON                           86.0 //teplota, pri niz rele vzdy sepne
                                      
-#define SEND_DELAY                          30000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                          60000  //prodleva mezi poslanim dat v ms
 //#define SHOW_INFO_DELAY                     5000  //
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define MEAS_DELAY                          2000  //mereni teplot
-#define CONNECT_DELAY                       5000 //ms
+#define CONNECT_DELAY                        5000 //ms
                                      
 #define TEMP_ERR                            -127
 

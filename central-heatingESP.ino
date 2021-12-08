@@ -27,7 +27,6 @@ bool firstTempMeasDone                      = false;
 
 float sensor[NUMBER_OF_DEVICES];
 
-ADC_MODE(ADC_VCC);
 
 float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
@@ -43,7 +42,6 @@ bool                  todayClear                  = false;
 bool                  dispClear                   = false;
 
 //#define SIMTEMP
-
 
 #define beep
 // #ifdef beep
@@ -80,6 +78,9 @@ byte customChar[] = {
   B00000,
   B00000
 };
+
+
+ADC_MODE(ADC_VCC); //vcc read
 
 const byte ROWS = 4; //four rows
 const byte COLS = 4; //three columns
@@ -141,11 +142,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
     sendNetInfoMQTT();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str())==0) {
     printMessageToLCD(topic, val);
-    DEBUG_PRINT("NET INFO");
     startConfigPortal();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str())==0) {
     printMessageToLCD(topic, val);
-    DEBUG_PRINT("NET INFO");
     stopConfigPortal();
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
     DEBUG_PRINT("Temperature from Meteo: ");
@@ -171,7 +170,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str())==0) {
     printMessageToLCD(topic, val);
-    DEBUG_PRINT("Set alerm temperature: ");
+    DEBUG_PRINT("Set alarm temperature: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempAlarm = val.toInt();
     saveConfig();
@@ -187,10 +186,14 @@ void printMessageToLCD(char* t, String v) {
   lcd.clear();
 }
 
+
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
   preSetup();
- 
+  
+  pinMode(RELAYPIN, OUTPUT);
+  digitalWrite(RELAYPIN, relayStatus);
+
   lcd.init();               // initialize the lcd 
   lcd.backlight();
   lcd.home();
@@ -308,12 +311,12 @@ void setup(void) {
   lcd.print(sensorsUT.getDeviceCount());
   lcd.print(F(" bus UT"));
   
-  delay(3000);
+  delay(2000);
   lcd.clear();
   
   displayInfo();
 
-  delay(3000);
+  delay(2000);
   lcd.clear();
 
 #ifdef timers
@@ -350,6 +353,7 @@ void loop(void) {
 #endif
 
   client.loop();
+  wifiManager.process();
 
   display();
 
@@ -683,41 +687,6 @@ void printTemp() {
   }*/
 }
 
-bool sendDataMQTT(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
-  DEBUG_PRINTLN(F("Data"));
-
-  client.publish((String(mqtt_base) + "/tINKamna").c_str(), String(tempIN).c_str());
-  client.publish((String(mqtt_base) + "/tOUTKamna").c_str(), String(tempOUT).c_str());
-  client.publish((String(mqtt_base) + "/sPumpKamna/status").c_str(), String(relayStatus==RELAY_ON ? 1 : 0).c_str());
-  client.publish((String(mqtt_base) + "/tempON").c_str(), String(storage.tempON).c_str());
-  client.publish((String(mqtt_base) + "/tempOFFDiff").c_str(), String(storage.tempOFFDiff).c_str());
-
-  // sender.add("t0",                  tempUT[0]);
-  // sender.add("t1",                  tempUT[1]);
-  // sender.add("t2",                  tempUT[2]);
-  // sender.add("t3",                  tempUT[3]);
-  // sender.add("t4",                  tempUT[4]);
-  // sender.add("t5",                  tempUT[5]);
-  // sender.add("t6",                  tempUT[6]);
-  // sender.add("t7",                  tempUT[7]);
-  // sender.add("t8",                  tempUT[8]);
-  // sender.add("t9",                  tempUT[9]);
-  // sender.add("t10",                 tempUT[10]);
-  // sender.add("t11",                 tempUT[11]);
-
-  digitalWrite(BUILTIN_LED, HIGH);
-  return true;
-}
-
-
-void sendRelayMQTT(byte akce) {
-  digitalWrite(BUILTIN_LED, LOW);
-
-  client.publish((String(mqtt_base) + "/relayChange").c_str(), String(akce).c_str());
- 
-  digitalWrite(BUILTIN_LED, HIGH);
-}
 
 //---------------------------------------------D I S P L A Y ------------------------------------------------
 /*
@@ -989,7 +958,6 @@ void printAddress(DeviceAddress deviceAddress)
   }
 }
 
-#ifdef time
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
   char buffer[6];
@@ -1007,7 +975,7 @@ bool displayTime(void *) {
   return true;
 }
 
-#endif
+
 
 void displayValue(int x, int y, float value, byte cela, byte des) {
   char buffer [18];
@@ -1031,6 +999,17 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
     lcd.print(abs((int)(value*(10*des))%(10*des)));
   }
 }
+
+// void PIREvent() {
+  // if (digitalRead(PIRPIN)==1) {
+    // DEBUG_PRINTLN("DISPLAY_ON");
+    // lcd.backlight();
+  // } else {
+    // DEBUG_PRINTLN("DISPLAY OFF");
+    // lcd.noBacklight();
+  // }
+// }
+
 
 bool saveConfig() {
   DEBUG_PRINTLN(F("Saving config..."));
@@ -1160,6 +1139,7 @@ bool readConfig() {
   return false;
 }
 
+
 bool calcStat(void *) {  //run each second from timer
   if (relayStatus == RELAY_ON) {
     runSecToday ++;
@@ -1197,6 +1177,41 @@ void dsInit(void) {
   sensorsUT.setWaitForConversion(false);
 
   //lcd.clear();
+}
+
+void sendRelayMQTT(byte akce) {
+  digitalWrite(BUILTIN_LED, LOW);
+
+  client.publish((String(mqtt_base) + "/relayChange").c_str(), String(akce).c_str());
+ 
+  digitalWrite(BUILTIN_LED, HIGH);
+}
+
+bool sendDataMQTT(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  DEBUG_PRINTLN(F("Data"));
+
+  client.publish((String(mqtt_base) + "/tINKamna").c_str(), String(tempIN).c_str());
+  client.publish((String(mqtt_base) + "/tOUTKamna").c_str(), String(tempOUT).c_str());
+  client.publish((String(mqtt_base) + "/sPumpKamna/status").c_str(), String(relayStatus==RELAY_ON ? 1 : 0).c_str());
+  client.publish((String(mqtt_base) + "/tempON").c_str(), String(storage.tempON).c_str());
+  client.publish((String(mqtt_base) + "/tempOFFDiff").c_str(), String(storage.tempOFFDiff).c_str());
+
+  // sender.add("t0",                  tempUT[0]);
+  // sender.add("t1",                  tempUT[1]);
+  // sender.add("t2",                  tempUT[2]);
+  // sender.add("t3",                  tempUT[3]);
+  // sender.add("t4",                  tempUT[4]);
+  // sender.add("t5",                  tempUT[5]);
+  // sender.add("t6",                  tempUT[6]);
+  // sender.add("t7",                  tempUT[7]);
+  // sender.add("t8",                  tempUT[8]);
+  // sender.add("t9",                  tempUT[9]);
+  // sender.add("t10",                 tempUT[10]);
+  // sender.add("t11",                 tempUT[11]);
+
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
 }
 
 bool reconnect(void *) {
