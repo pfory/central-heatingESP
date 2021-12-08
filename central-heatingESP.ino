@@ -23,8 +23,6 @@ DeviceAddress inThermometer, outThermometer;
 DeviceAddress utT[NUMBER_OF_DEVICES];
 DeviceAddress tempDeviceAddress;
 
-//DeviceAddress tempDeviceAddresses[NUMBER_OF_DEVICES];
-
 bool firstTempMeasDone                      = false;
 
 float sensor[NUMBER_OF_DEVICES];
@@ -45,6 +43,18 @@ bool                  dispClear                   = false;
 
 //#define SIMTEMP
 
+<<<<<<< HEAD
+=======
+#ifdef time
+WiFiUDP EthernetUdp;
+static const char     ntpServerName[]       = "tik.cesnet.cz";
+TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
+TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
+Timezone CE(CEST, CET);
+unsigned int          localPort             = 8888;  // local port to listen for UDP packets
+time_t getNtpTime();
+#endif
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 
 #define beep
 // #ifdef beep
@@ -68,7 +78,7 @@ struct StoreStruct {
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 #define PRINT_SPACE  lcd.print(" ");
 volatile bool showDoubleDot                 = false;
-#define DISPLAY_MAIN                         0
+//#define DISPLAY_MAIN                         0
 
 //navrhar - https://maxpromer.github.io/LCD-Character-Creator/
 byte customChar[] = {
@@ -82,6 +92,14 @@ byte customChar[] = {
   B00000
 };
 
+<<<<<<< HEAD
+=======
+
+DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
+
+ADC_MODE(ADC_VCC); //vcc read
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 const byte ROWS = 4; //four rows
 const byte COLS = 4; //three columns
 char keys[ROWS][COLS]                 = {
@@ -90,8 +108,8 @@ char keys[ROWS][COLS]                 = {
                                             {'7','8','9','C'},
                                             {'*','0','#','D'}
 };
-byte rowPins[ROWS] = {7,6,5,4}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {3,2,1,0}; //connect to the column pinouts of the keypad
+byte rowPins[ROWS]                    = {7,6,5,4}; //connect to the row pinouts of the keypad
+byte colPins[COLS]                    = {3,2,1,0}; //connect to the column pinouts of the keypad
 
 //Keypad_I2C keypad = Keypad_I2C( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR );
 Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR); 
@@ -100,6 +118,32 @@ Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR);
 byte displayVar       = 1;
 char displayVarSub    = ' ';
 
+<<<<<<< HEAD
+=======
+//for LED status
+Ticker ticker;
+
+auto timer = timer_create_default(); // create a timer with default settings
+Timer<> default_timer; // save as above
+
+
+void tick() {
+  //toggle state
+  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
+  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+}
+
+//gets called when WiFiManager enters configuration mode
+void configModeCallback (WiFiManager *myWiFiManager) {
+  DEBUG_PRINTLN("Entered config mode");
+  DEBUG_PRINTLN(WiFi.softAPIP());
+  //if you used auto generated SSID, print it
+  DEBUG_PRINTLN(myWiFiManager->getConfigPortalSSID());
+  //entered config mode, make led toggle faster
+  ticker.attach(0.2, tick);
+}
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 //MQTT callback
 void callback(char* topic, byte* payload, unsigned int length) {
   char * pEnd;
@@ -179,6 +223,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+<<<<<<< HEAD
+=======
+bool isDebugEnabled() {
+#ifdef verbose
+  return true;
+#endif // verbose
+  return false;
+}
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 void printMessageToLCD(char* t, String v) {
   lcd.clear();
   lcd.print(t);
@@ -188,10 +242,40 @@ void printMessageToLCD(char* t, String v) {
   lcd.clear();
 }
 
+<<<<<<< HEAD
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
   preSetup();
   
+=======
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+WiFiManager wifiManager;
+
+/////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
+void setup(void) {
+  SERIAL_BEGIN;
+  DEBUG_PRINT(F(SW_NAME));
+  DEBUG_PRINT(F(" "));
+  DEBUG_PRINTLN(F(VERSION));
+
+  pinMode(RELAYPIN, OUTPUT);
+  digitalWrite(RELAYPIN, relayStatus);
+  delay(5000);
+
+  pinMode(BUILTIN_LED, OUTPUT);
+  ticker.attach(1, tick);
+
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
+
+  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
   lcd.init();               // initialize the lcd 
   lcd.backlight();
   lcd.home();
@@ -200,13 +284,26 @@ void setup(void) {
   lcd.print(VERSION);
   lcd.createChar(0, customChar);
 
+<<<<<<< HEAD
+=======
+
+  if (drd.detectDoubleReset()) {
+    DEBUG_PRINTLN("Double reset detected, starting config portal...");
+    ticker.attach(0.2, tick);
+    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
+      DEBUG_PRINTLN("failed to connect and hit timeout");
+      delay(3000);
+      //reset and try again, or maybe put it to deep sleep
+      ESP.reset();
+      delay(5000);
+    }
+  }
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
   pinMode(ONE_WIRE_BUS_IN, INPUT);
   pinMode(ONE_WIRE_BUS_OUT, INPUT);
   pinMode(ONE_WIRE_BUS_UT, INPUT);
 
-  pinMode(RELAYPIN, OUTPUT);
-  digitalWrite(RELAYPIN, relayStatus);
-  pinMode(BUILTIN_LED, OUTPUT);
   pinMode(BUZZERPIN, OUTPUT);
 #ifdef PIR
   pinMode(PIRPIN, INPUT);
@@ -219,7 +316,58 @@ void setup(void) {
   printf("SPIFFS: %lu of %lu bytes used.\n",
          fs_info.usedBytes, fs_info.totalBytes);
          
+<<<<<<< HEAD
          
+=======
+  if (!wifiManager.autoConnect(AUTOCONNECTNAME, AUTOCONNECTPWD)) { 
+    DEBUG_PRINTLN("failed to connect and hit timeout");
+    delay(3000);
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(5000);
+  } 
+
+  sendNetInfoMQTT();
+
+#ifdef time
+  DEBUG_PRINTLN("Setup TIME");
+  lcd.setCursor(0,1);
+  lcd.print("Setup time...");
+  EthernetUdp.begin(localPort);
+  DEBUG_PRINT("Local port: ");
+  DEBUG_PRINTLN(EthernetUdp.localPort());
+  DEBUG_PRINTLN("waiting for sync");
+  setSyncProvider(getNtpTime);
+  setSyncInterval(300);
+  
+  printSystemTime();
+#endif
+
+#ifdef ota
+  ArduinoOTA.setHostname("Central heating");
+
+  ArduinoOTA.onStart([]() {
+    DEBUG_PRINTLN("Start updating ");
+  });
+  ArduinoOTA.onEnd([]() {
+   DEBUG_PRINTLN("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    DEBUG_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    DEBUG_PRINTF("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
+  ArduinoOTA.begin();
+#endif
+
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 #ifdef beep
   //peep.Delay(100,40,1,255);
   //tone(BUZZERPIN, 5000, 5);
@@ -392,7 +540,7 @@ void loop(void) {
   testPumpProtect();
 }
 
-/////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
+//---------------------------------------------M A I N  C O N T R O L ------------------------------------------------
 void relay() {
   if (tempIN<-100 || tempOUT<-100) {
     relayStatus = RELAY_ON;
@@ -715,6 +863,7 @@ bool sendDataMQTT(void *) {
   return true;
 }
 
+<<<<<<< HEAD
 // bool sendSOMQTT(void *) {
   // digitalWrite(BUILTIN_LED, LOW);
   // DEBUG_PRINTLN(F("Sensor order"));
@@ -736,6 +885,29 @@ bool sendDataMQTT(void *) {
   // digitalWrite(BUILTIN_LED, HIGH);
   // return true;
 // }
+=======
+bool sendStatisticMQTT(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  //printSystemTime();
+  DEBUG_PRINTLN(F("Statistic"));
+
+  SenderClass sender;
+  sender.add("VersionSWCentral",              VERSION);
+  sender.add("Napeti",  ESP.getVcc());
+  sender.add("HeartBeat",                     heartBeat++);
+  if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
+  sender.add(String("tempON"),                storage.tempON);
+  sender.add(String("tempOFFDiff"),           storage.tempOFFDiff);
+  sender.add(String("relayType"),             storage.relayType);
+  
+  DEBUG_PRINTLN(F("Calling MQTT"));
+  
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 
 void sendRelayMQTT(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
@@ -745,7 +917,13 @@ void sendRelayMQTT(byte akce) {
   digitalWrite(BUILTIN_LED, HIGH);
 }
 
+<<<<<<< HEAD
 //display
+=======
+
+
+//---------------------------------------------D I S P L A Y ------------------------------------------------
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 /*
   01234567890123456789
   --------------------
@@ -1035,6 +1213,29 @@ bool displayTime(void *) {
 
 #endif
 
+<<<<<<< HEAD
+=======
+void reconnect() {
+  // Loop until we're reconnected
+  if (!client.connected()) {
+    if (lastConnectAttempt == 0 || lastConnectAttempt + connectDelay < millis()) {
+      DEBUG_PRINT("Attempting MQTT connection...");
+      // Attempt to connect
+      if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
+        DEBUG_PRINTLN("connected");
+        // Once connected, publish an announcement...
+        client.subscribe((String(mqtt_base) + "/#").c_str());
+        client.subscribe(mqtt_topic_weather);
+      } else {
+        lastConnectAttempt = millis();
+        DEBUG_PRINT("failed, rc=");
+        DEBUG_PRINTLN(client.state());
+      }
+    }
+  }
+}
+
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 void displayValue(int x, int y, float value, byte cela, byte des) {
   char buffer [18];
   if (des==0) {

@@ -1,8 +1,10 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+//deska LOLIN(WEMOS)D1 R2 & mini
+
 //SW name & version
-#define     VERSION                      "0.05"
+#define     VERSION                      "0.06"
 #define     SW_NAME                      "Ventily"
 
 /////////////////////////////////////////////////////
@@ -29,6 +31,7 @@ enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
 #include "Sender.h"
 #include "PCF8574.h"
 #include <Wire.h>
+#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 
 #define verbose
 #ifdef verbose
@@ -46,21 +49,31 @@ enum valves {SOLAROUT, SOLARIN, RADIATOR, BOJLERIN, BOJLEROUT} valve;
   #define DEBUG_PRINTF(x, y)
 #endif 
 
+// Number of seconds after reset during which a
+// subseqent reset will be considered a double reset.
+#define DRD_TIMEOUT 2
+// RTC Memory Address for the DoubleResetDetector to use
+#define DRD_ADDRESS 0
+
 //#define test
 #ifdef test
   #define DELAY                 delay(500);
 #endif
 
+#define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
+#define CONNECT_TIMEOUT 120 //jak dlouho se ceka na spojeni nez se aktivuje config portal
+
 static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;
 static const char* const      mqtt_username                  = "datel";
 static const char* const      mqtt_key                       = "hanka12";
-static const char* const      mqtt_base                      = "/home/Corridor/esp08";
-static const char* const      static_ip                      = "192.168.1.111";
-static const char* const      static_gw                      = "192.168.1.1";
-static const char* const      static_sn                      = "255.255.255.0";
+static const char* const      mqtt_base                      = "/home/Corridor/esp08a";
+// static const char* const      static_ip                      = "192.168.1.111";
+// static const char* const      static_gw                      = "192.168.1.1";
+// static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
 static const char* const      mqtt_topic_restart             = "restart";
+static const char* const      mqtt_topic_netinfo             = "netinfo";
 static const char* const      mqtt_topic_valve1              = "valve1";
 static const char* const      mqtt_topic_valve2              = "valve2";
 static const char* const      mqtt_topic_valve3              = "valve3";
@@ -70,18 +83,15 @@ static const char* const      mqtt_topic_valve5              = "valve5";
 static const char* const      mqtt_topic_valveStop           = "valveStop";
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
-#define STATUS_LED                          BUILTIN_LED //status LED
-//#define ONE_WIRE_BUS_IN                     D6 //MISO                       GPIO12
-//#define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
-//#define ONE_WIRE_BUS_UT                     D7 //MOSI                       GPIO13
-//#define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
-//#define BUZZERPIN                           D8 //                           GPIO15
-//#ifdef PIR
-//#define PIRPIN                              D0 //10k Pull-down, SS          GPIO16
-//#endif
-//SDA                                       D2 //                           GPIO4
-//SCL                                       D1 //                           GPIO5
-//BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO2
+//#define                                     D6 //MISO                       GPIO12
+//#define                                     D5 //SCK                        GPIO14
+//#define                                     D7 //MOSI                       GPIO13
+//#define                                     D3 //relay 10k Pull-up          GPIO0
+//#define                                     D8 //                           GPIO15
+//#define                                     D0 //10k Pull-down, SS          GPIO16
+//SDA                                         D2 //                           GPIO4
+//SCL                                         D1 //                           GPIO5
+//BUILTIN_LED                                 D4 //10k Pull-up, BUILTIN_LED   GPIO2
 
 
 #define RELAY_ON                            LOW

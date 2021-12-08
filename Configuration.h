@@ -3,7 +3,6 @@
 
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <Ticker.h>
 #include "Sender.h"
 #include <Wire.h>
 #include <OneWire.h>
@@ -26,6 +25,22 @@
 #define ota
 #define verbose
 #define time
+<<<<<<< HEAD
+=======
+#ifdef time
+#include <TimeLib.h>
+#include <Timezone.h>
+#endif
+
+#define AUTOCONNECTNAME   HOSTNAMEOTA
+#define AUTOCONNECTPWD    "password"
+
+#define ota
+#ifdef ota
+#include <ArduinoOTA.h>
+#define HOSTNAMEOTA   SW_NAME VERSION
+#endif
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 
 #define PIR
 
@@ -141,8 +156,15 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 #define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
 
+<<<<<<< HEAD
 #define TIMEX                               0
 #define TIMEY                               3
+=======
+#ifdef time
+#define TIMEX                               0
+#define TIMEY                               3
+#endif
+>>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 
 // #define DISPLAY_MAIN                         0
 // #define DISPLAY_T_DIFF_ON                    2

@@ -3,6 +3,7 @@
 VENTILY - control system for central heating
 Petr Fory pfory@seznam.cz
 GIT - https://github.com/pfory/central-heatingESP
+deska LOLIN(WEMOS)D1 R2 & mini
 */
 
 #include "Configuration.h"
@@ -61,6 +62,8 @@ Timer<> default_timer; // save as above
 #include <Ticker.h>
 Ticker ticker;
 
+DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
+
 void tick() {
   //toggle state
   int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
@@ -96,6 +99,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str())==0) {
+    DEBUG_PRINT("NET INFO");
+    sendNetInfoMQTT();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve1)).c_str())==0) {
     setValve(val.toInt(), 0);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_valve2)).c_str())==0) {
@@ -143,12 +149,36 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 
+WiFiManager wifiManager;
+  
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup() {
   SERIAL_BEGIN;
   DEBUG_PRINT(F(SW_NAME));
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
+
+  pinMode(BUILTIN_LED, OUTPUT);
+  ticker.attach(1, tick);
+
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
+
+  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
+
+  if (drd.detectDoubleReset()) {
+    DEBUG_PRINTLN("Double reset detected, starting config portal...");
+    ticker.attach(0.2, tick);
+    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
+      DEBUG_PRINTLN("failed to connect and hit timeout");
+      delay(3000);
+      //reset and try again, or maybe put it to deep sleep
+      ESP.reset();
+      delay(5000);
+    }
+  }
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
   uint8_t _reset_reason = _reset_info->reason;
@@ -168,27 +198,8 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 
-  ticker.attach(1, tick);
-
-  WiFiManager wifiManager;
-  //reset settings - for testing
-  //wifiManager.resetSettings();
-  //wifiManager.setConnectTimeout(60); //5min
-
-  IPAddress _ip,_gw,_sn;
-  _ip.fromString(static_ip);
-  _gw.fromString(static_gw);
-  _sn.fromString(static_sn);
-
-  wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
-  
-  DEBUG_PRINTLN(_ip);
-  DEBUG_PRINTLN(_gw);
-  DEBUG_PRINTLN(_sn);
-
-  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
-  
+  WiFi.printDiag(Serial);
+ 
   //DEBUG_PRINTLN(ESP.getFlashChipRealSize);
   //DEBUG_PRINTLN(ESP.getCpuFreqMHz);
   //WiFi.begin(ssid, password);
@@ -200,6 +211,9 @@ void setup() {
     ESP.reset();
     delay(5000);
   } 
+  
+  sendNetInfoMQTT();
+
 
 #ifdef ota
   ArduinoOTA.setHostname(HOSTNAMEOTA);
@@ -240,7 +254,6 @@ void setup() {
   sendStatisticMQTT(a);
 
   ticker.detach();
-  //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
   
   DEBUG_PRINTLN(F("Setup end."));
@@ -251,6 +264,10 @@ void setup() {
 #ifdef test
   valveTest();
 #endif
+
+  drd.stop();
+
+  DEBUG_PRINTLN(F("Setup end."));
 }
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
@@ -272,7 +289,7 @@ void loop() {
 
   if (change) {
     change = false;
-    //blockSendingData = true;
+    blockSendingData = true;
     ticker.attach(1, tick);
 
     DEBUG_PRINT("START ");
@@ -303,12 +320,13 @@ void loop() {
     DEBUG_PRINT(poziceEnkod);
   }
   stavPred = stavCLK;
+  //DEBUG_PRINT(".");
 }
 
 /////////////////////////////////////////////   F  U  N  C   ///////////////////////////////////////
 bool checkStatus(void *) {
   if (poziceEnkod == poziceEnkodOld) {
-    //valveStop();
+    valveStop();
   } else {
     poziceEnkodOld = poziceEnkod;
   }
@@ -324,6 +342,8 @@ void valveStop() {
   PCF_01.write(pinRelayValve4,        HIGH);
   PCF_01.write(pinRelayValve5,        HIGH);
   blockSendingData = false;
+  ticker.detach();
+  digitalWrite(BUILTIN_LED, HIGH);
 }
 
 int getStavCLK() {
@@ -381,13 +401,15 @@ void reconnect() {
 }
 
 // bool sendDataMQTT(void *) {
-  // digitalWrite(BUILTIN_LED, LOW);
-  // SenderClass sender;
-  // DEBUG_PRINTLN(F(" - I am sending data to MQTT"));
+  //if (!blockSendingData) {
+    // digitalWrite(BUILTIN_LED, LOW);
+    // SenderClass sender;
+    // DEBUG_PRINTLN(F(" - I am sending data to MQTT"));
 
-  // sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+    // sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
-  // digitalWrite(BUILTIN_LED, HIGH);
+    // digitalWrite(BUILTIN_LED, HIGH);
+  //}
   // return true;
 // }
 
@@ -395,7 +417,7 @@ bool sendStatisticMQTT(void *) {
   if (!blockSendingData) {
     digitalWrite(BUILTIN_LED, LOW);
     //printSystemTime();
-    DEBUG_PRINTLN(F(" - I am sending statistic to MQTT"));
+    DEBUG_PRINTLN(F("Statistic"));
 
     SenderClass sender;
     sender.add("VersionSWVentily",  VERSION);
@@ -409,6 +431,25 @@ bool sendStatisticMQTT(void *) {
   }
   return true;
 }
+
+void sendNetInfoMQTT() {
+  if (!blockSendingData) {
+    digitalWrite(BUILTIN_LED, LOW);
+    //printSystemTime();
+    DEBUG_PRINTLN(F("Net info"));
+
+    SenderClass sender;
+    sender.add("IP",              WiFi.localIP().toString().c_str());
+    sender.add("MAC",             WiFi.macAddress());
+    
+    DEBUG_PRINTLN(F("Calling MQTT"));
+    
+    sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+    digitalWrite(BUILTIN_LED, HIGH);
+  }
+  return;
+}
+
 
 #ifdef test
 void valveTest() {
