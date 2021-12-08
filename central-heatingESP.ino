@@ -27,6 +27,7 @@ bool firstTempMeasDone                      = false;
 
 float sensor[NUMBER_OF_DEVICES];
 
+ADC_MODE(ADC_VCC);
 
 float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
@@ -43,18 +44,6 @@ bool                  dispClear                   = false;
 
 //#define SIMTEMP
 
-<<<<<<< HEAD
-=======
-#ifdef time
-WiFiUDP EthernetUdp;
-static const char     ntpServerName[]       = "tik.cesnet.cz";
-TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
-TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
-Timezone CE(CEST, CET);
-unsigned int          localPort             = 8888;  // local port to listen for UDP packets
-time_t getNtpTime();
-#endif
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 
 #define beep
 // #ifdef beep
@@ -92,14 +81,6 @@ byte customChar[] = {
   B00000
 };
 
-<<<<<<< HEAD
-=======
-
-DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
-
-ADC_MODE(ADC_VCC); //vcc read
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 const byte ROWS = 4; //four rows
 const byte COLS = 4; //three columns
 char keys[ROWS][COLS]                 = {
@@ -118,32 +99,6 @@ Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR);
 byte displayVar       = 1;
 char displayVarSub    = ' ';
 
-<<<<<<< HEAD
-=======
-//for LED status
-Ticker ticker;
-
-auto timer = timer_create_default(); // create a timer with default settings
-Timer<> default_timer; // save as above
-
-
-void tick() {
-  //toggle state
-  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
-  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
-}
-
-//gets called when WiFiManager enters configuration mode
-void configModeCallback (WiFiManager *myWiFiManager) {
-  DEBUG_PRINTLN("Entered config mode");
-  DEBUG_PRINTLN(WiFi.softAPIP());
-  //if you used auto generated SSID, print it
-  DEBUG_PRINTLN(myWiFiManager->getConfigPortalSSID());
-  //entered config mode, make led toggle faster
-  ticker.attach(0.2, tick);
-}
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 //MQTT callback
 void callback(char* topic, byte* payload, unsigned int length) {
   char * pEnd;
@@ -223,16 +178,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-<<<<<<< HEAD
-=======
-bool isDebugEnabled() {
-#ifdef verbose
-  return true;
-#endif // verbose
-  return false;
-}
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 void printMessageToLCD(char* t, String v) {
   lcd.clear();
   lcd.print(t);
@@ -242,40 +187,10 @@ void printMessageToLCD(char* t, String v) {
   lcd.clear();
 }
 
-<<<<<<< HEAD
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
   preSetup();
-  
-=======
-
-WiFiClient espClient;
-PubSubClient client(espClient);
-
-WiFiManager wifiManager;
-
-/////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
-void setup(void) {
-  SERIAL_BEGIN;
-  DEBUG_PRINT(F(SW_NAME));
-  DEBUG_PRINT(F(" "));
-  DEBUG_PRINTLN(F(VERSION));
-
-  pinMode(RELAYPIN, OUTPUT);
-  digitalWrite(RELAYPIN, relayStatus);
-  delay(5000);
-
-  pinMode(BUILTIN_LED, OUTPUT);
-  ticker.attach(1, tick);
-
-  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-
-  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
-  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
+ 
   lcd.init();               // initialize the lcd 
   lcd.backlight();
   lcd.home();
@@ -284,22 +199,6 @@ void setup(void) {
   lcd.print(VERSION);
   lcd.createChar(0, customChar);
 
-<<<<<<< HEAD
-=======
-
-  if (drd.detectDoubleReset()) {
-    DEBUG_PRINTLN("Double reset detected, starting config portal...");
-    ticker.attach(0.2, tick);
-    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
-      DEBUG_PRINTLN("failed to connect and hit timeout");
-      delay(3000);
-      //reset and try again, or maybe put it to deep sleep
-      ESP.reset();
-      delay(5000);
-    }
-  }
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
   pinMode(ONE_WIRE_BUS_IN, INPUT);
   pinMode(ONE_WIRE_BUS_OUT, INPUT);
   pinMode(ONE_WIRE_BUS_UT, INPUT);
@@ -316,58 +215,6 @@ void setup(void) {
   printf("SPIFFS: %lu of %lu bytes used.\n",
          fs_info.usedBytes, fs_info.totalBytes);
          
-<<<<<<< HEAD
-         
-=======
-  if (!wifiManager.autoConnect(AUTOCONNECTNAME, AUTOCONNECTPWD)) { 
-    DEBUG_PRINTLN("failed to connect and hit timeout");
-    delay(3000);
-    //reset and try again, or maybe put it to deep sleep
-    ESP.reset();
-    delay(5000);
-  } 
-
-  sendNetInfoMQTT();
-
-#ifdef time
-  DEBUG_PRINTLN("Setup TIME");
-  lcd.setCursor(0,1);
-  lcd.print("Setup time...");
-  EthernetUdp.begin(localPort);
-  DEBUG_PRINT("Local port: ");
-  DEBUG_PRINTLN(EthernetUdp.localPort());
-  DEBUG_PRINTLN("waiting for sync");
-  setSyncProvider(getNtpTime);
-  setSyncInterval(300);
-  
-  printSystemTime();
-#endif
-
-#ifdef ota
-  ArduinoOTA.setHostname("Central heating");
-
-  ArduinoOTA.onStart([]() {
-    DEBUG_PRINTLN("Start updating ");
-  });
-  ArduinoOTA.onEnd([]() {
-   DEBUG_PRINTLN("\nEnd");
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    DEBUG_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    DEBUG_PRINTF("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
-  });
-  ArduinoOTA.begin();
-#endif
-
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 #ifdef beep
   //peep.Delay(100,40,1,255);
   //tone(BUZZERPIN, 5000, 5);
@@ -843,8 +690,8 @@ bool sendDataMQTT(void *) {
   client.publish((String(mqtt_base) + "/tINKamna").c_str(), String(tempIN).c_str());
   client.publish((String(mqtt_base) + "/tOUTKamna").c_str(), String(tempOUT).c_str());
   client.publish((String(mqtt_base) + "/sPumpKamna/status").c_str(), String(relayStatus==RELAY_ON ? 1 : 0).c_str());
-  client.publish((String(mqtt_base) + "tempON").c_str(), String(storage.tempON).c_str());
-  client.publish((String(mqtt_base) + "tempOFFDiff").c_str(), String(tempOFFDiff).c_str());
+  client.publish((String(mqtt_base) + "/tempON").c_str(), String(storage.tempON).c_str());
+  client.publish((String(mqtt_base) + "/tempOFFDiff").c_str(), String(storage.tempOFFDiff).c_str());
 
   // sender.add("t0",                  tempUT[0]);
   // sender.add("t1",                  tempUT[1]);
@@ -863,51 +710,6 @@ bool sendDataMQTT(void *) {
   return true;
 }
 
-<<<<<<< HEAD
-// bool sendSOMQTT(void *) {
-  // digitalWrite(BUILTIN_LED, LOW);
-  // DEBUG_PRINTLN(F("Sensor order"));
-
-  // sender.add("so0", sensorOrder[0]);
-  // sender.add("so1", sensorOrder[1]);
-  // sender.add("so2", sensorOrder[2]);
-  // sender.add("so3", sensorOrder[3]);
-  // sender.add("so4", sensorOrder[4]);
-  // sender.add("so5", sensorOrder[5]);
-  // sender.add("so6", sensorOrder[6]);
-  // sender.add("so7", sensorOrder[7]);
-  // sender.add("so8", sensorOrder[8]);
-  // sender.add("so9", sensorOrder[9]);
-  // sender.add("so10", sensorOrder[10]);
-  // sender.add("so11", sensorOrder[11]);
-  // sender.add("so11", sensorOrder[12]);
-
-  // digitalWrite(BUILTIN_LED, HIGH);
-  // return true;
-// }
-=======
-bool sendStatisticMQTT(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
-  //printSystemTime();
-  DEBUG_PRINTLN(F("Statistic"));
-
-  SenderClass sender;
-  sender.add("VersionSWCentral",              VERSION);
-  sender.add("Napeti",  ESP.getVcc());
-  sender.add("HeartBeat",                     heartBeat++);
-  if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
-  sender.add(String("tempON"),                storage.tempON);
-  sender.add(String("tempOFFDiff"),           storage.tempOFFDiff);
-  sender.add(String("relayType"),             storage.relayType);
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
-  return true;
-}
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 
 void sendRelayMQTT(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
@@ -917,13 +719,7 @@ void sendRelayMQTT(byte akce) {
   digitalWrite(BUILTIN_LED, HIGH);
 }
 
-<<<<<<< HEAD
-//display
-=======
-
-
 //---------------------------------------------D I S P L A Y ------------------------------------------------
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 /*
   01234567890123456789
   --------------------
@@ -1213,29 +1009,6 @@ bool displayTime(void *) {
 
 #endif
 
-<<<<<<< HEAD
-=======
-void reconnect() {
-  // Loop until we're reconnected
-  if (!client.connected()) {
-    if (lastConnectAttempt == 0 || lastConnectAttempt + connectDelay < millis()) {
-      DEBUG_PRINT("Attempting MQTT connection...");
-      // Attempt to connect
-      if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
-        DEBUG_PRINTLN("connected");
-        // Once connected, publish an announcement...
-        client.subscribe((String(mqtt_base) + "/#").c_str());
-        client.subscribe(mqtt_topic_weather);
-      } else {
-        lastConnectAttempt = millis();
-        DEBUG_PRINT("failed, rc=");
-        DEBUG_PRINTLN(client.state());
-      }
-    }
-  }
-}
-
->>>>>>> aac08668baa9bfae0a89a76793d437f2defeed9e
 void displayValue(int x, int y, float value, byte cela, byte des) {
   char buffer [18];
   if (des==0) {
