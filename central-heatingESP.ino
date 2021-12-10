@@ -12,15 +12,15 @@ byte            sensorOrder[NUMBER_OF_DEVICES];
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWireOUT(ONE_WIRE_BUS_OUT);
 OneWire oneWireIN(ONE_WIRE_BUS_IN);
-OneWire oneWireUT(ONE_WIRE_BUS_UT);
+//OneWire oneWireUT(ONE_WIRE_BUS_UT);
 
 // Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature sensorsOUT(&oneWireOUT);
 DallasTemperature sensorsIN(&oneWireIN);
-DallasTemperature sensorsUT(&oneWireUT);
+//DallasTemperature sensorsUT(&oneWireUT);
 
 DeviceAddress inThermometer, outThermometer;
-DeviceAddress utT[NUMBER_OF_DEVICES];
+//DeviceAddress utT[NUMBER_OF_DEVICES];
 DeviceAddress tempDeviceAddress;
 
 bool firstTempMeasDone                      = false;
@@ -30,7 +30,7 @@ float sensor[NUMBER_OF_DEVICES];
 
 float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
-float                 tempUT[12];              
+//float                 tempUT[12];              
 bool                  tempRefresh                 = false;
 float                 temp[15];              
 
@@ -113,9 +113,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     val += (char)payload[i];
   }
   DEBUG_PRINTLN();
+  lcd.clear();
+  lcd.print(topic);
+  lcd.print(": ");
+  lcd.print(val);
+  delay(500);
+  lcd.clear();
   
   if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str())==0) {
-    printMessageToLCD(topic, val);
     DEBUG_PRINT("set relay to ");
     storage.relayType = val.toInt();
     if (val.toInt()==0) {
@@ -295,21 +300,21 @@ void setup(void) {
   lcd.print(sensorsOUT.getDeviceCount());
   lcd.print(F(" bus OUT"));
  
-  DEBUG_PRINT(F("Sensor(s) "));
-  DEBUG_PRINT(sensorsUT.getDeviceCount());
-  DEBUG_PRINT(F(" on bus UT - pin "));
-  DEBUG_PRINTLN(ONE_WIRE_BUS_UT);
-  DEBUG_PRINTLN(F("Device Address: "));
-  for (byte i = 0; i<sensorsUT.getDeviceCount(); i++) {
-    sensorsUT.getAddress(utT[i], i); 
-    printAddress(utT[i]);
-    DEBUG_PRINTLN();
-  }
+  // DEBUG_PRINT(F("Sensor(s) "));
+  // DEBUG_PRINT(sensorsUT.getDeviceCount());
+  // DEBUG_PRINT(F(" on bus UT - pin "));
+  // DEBUG_PRINTLN(ONE_WIRE_BUS_UT);
+  // DEBUG_PRINTLN(F("Device Address: "));
+  // for (byte i = 0; i<sensorsUT.getDeviceCount(); i++) {
+    // sensorsUT.getAddress(utT[i], i); 
+    // printAddress(utT[i]);
+    // DEBUG_PRINTLN();
+  // }
   
-  lcd.setCursor(0,3);
-  lcd.print(F("Sen."));
-  lcd.print(sensorsUT.getDeviceCount());
-  lcd.print(F(" bus UT"));
+  // lcd.setCursor(0,3);
+  // lcd.print(F("Sen."));
+  // lcd.print(sensorsUT.getDeviceCount());
+  // lcd.print(F(" bus UT"));
   
   delay(2000);
   lcd.clear();
@@ -461,21 +466,21 @@ bool tempMeas(void *) {
   DEBUG_PRINT(F("Requesting temperatures..."));
   sensorsIN.requestTemperatures(); // Send the command to get temperatures
   sensorsOUT.requestTemperatures(); // Send the command to get temperatures
-  sensorsUT.requestTemperatures(); // Send the command to get temperatures
+  //sensorsUT.requestTemperatures(); // Send the command to get temperatures
   DEBUG_PRINTLN(F("DONE"));
   
-  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
-    float tempTemp=(float)TEMP_ERR;
-    for (byte j=0;j<10;j++) { //try to read temperature ten times
-      tempTemp = sensorsUT.getTempC(utT[i]);
-      if (tempTemp>=-55) {
-        break;
-      }
-    }
+  // for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
+    // float tempTemp=(float)TEMP_ERR;
+    // for (byte j=0;j<10;j++) { //try to read temperature ten times
+      // tempTemp = sensorsUT.getTempC(utT[i]);
+      // if (tempTemp>=-55) {
+        // break;
+      // }
+    // }
 
-    // DEBUG_PRINTLN(tempTemp);
-    tempUT[0] = sensor[sensorOrder[0]];
-  }
+    // // DEBUG_PRINTLN(tempTemp);
+    // tempUT[0] = sensor[sensorOrder[0]];
+  // }
   
   float tempTemp=(float)TEMP_ERR;
   for (byte j=0;j<10;j++) { //try to read temperature ten times
@@ -586,12 +591,12 @@ bool tempMeas(void *) {
   //obcas se vyskytne chyba a vsechna cidla prestanou merit
   //zkusim restartovat sbernici
   bool reset=false;
-  for (byte i=0; i<sensorsUT.getDeviceCount(); i++) {
-    //if (sensor[i]==0.0 || sensor[i]<-100.0) {
-    if (tempUT[i]<-100.0) {
-      reset=true;
-    }
-  }
+  // for (byte i=0; i<sensorsUT.getDeviceCount(); i++) {
+    // //if (sensor[i]==0.0 || sensor[i]<-100.0) {
+    // if (tempUT[i]<-100.0) {
+      // reset=true;
+    // }
+  // }
   if (tempIN<-100 || tempOUT<-100) {
     reset= true;
   }
@@ -614,66 +619,66 @@ void printTemp() {
   DEBUG_PRINTLN();
   DeviceAddress da;
   
-  DEBUG_PRINT(tempUT[0]);
-  DEBUG_PRINT(" obyvak vstup - ");
-  sensorsUT.getAddress(da, 4); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[1]);
-  DEBUG_PRINT(" obyvak vystup - ");
-  sensorsUT.getAddress(da, 5); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[2]);
-  DEBUG_PRINT(" loznice nova vstup - ");
-  sensorsUT.getAddress(da, 3); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[3]);
-  DEBUG_PRINT(" loznice nova vystup - ");
-  sensorsUT.getAddress(da, 11); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[4]);
-  DEBUG_PRINT(" loznice stara vstup - ");
-  sensorsUT.getAddress(da, 2); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[5]);
-  DEBUG_PRINT(" loznice stara vystup - ");
-  sensorsUT.getAddress(da, 9); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[6]);
-  DEBUG_PRINT(" dilna vstup - ");
-  sensorsUT.getAddress(da, 0); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[7]);
-  DEBUG_PRINT(" dilna vystup - ");
-  sensorsUT.getAddress(da, 1); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[8]);
-  DEBUG_PRINT(" bojler vstup - ");
-  sensorsUT.getAddress(da, 8); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[9]);
-  DEBUG_PRINT(" bojler vystup - ");
-  sensorsUT.getAddress(da, 6); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[10]);
-  DEBUG_PRINT(" hala vstup - ");
-  sensorsUT.getAddress(da, 7); 
-  printAddress(da);
-  DEBUG_PRINTLN();
-  DEBUG_PRINT(tempUT[11]);
-  DEBUG_PRINT(" hala vystup - ");
-  sensorsUT.getAddress(da, 10); 
-  printAddress(da);
-  DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[0]);
+  // DEBUG_PRINT(" obyvak vstup - ");
+  // sensorsUT.getAddress(da, 4); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[1]);
+  // DEBUG_PRINT(" obyvak vystup - ");
+  // sensorsUT.getAddress(da, 5); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[2]);
+  // DEBUG_PRINT(" loznice nova vstup - ");
+  // sensorsUT.getAddress(da, 3); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[3]);
+  // DEBUG_PRINT(" loznice nova vystup - ");
+  // sensorsUT.getAddress(da, 11); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[4]);
+  // DEBUG_PRINT(" loznice stara vstup - ");
+  // sensorsUT.getAddress(da, 2); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[5]);
+  // DEBUG_PRINT(" loznice stara vystup - ");
+  // sensorsUT.getAddress(da, 9); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[6]);
+  // DEBUG_PRINT(" dilna vstup - ");
+  // sensorsUT.getAddress(da, 0); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[7]);
+  // DEBUG_PRINT(" dilna vystup - ");
+  // sensorsUT.getAddress(da, 1); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[8]);
+  // DEBUG_PRINT(" bojler vstup - ");
+  // sensorsUT.getAddress(da, 8); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[9]);
+  // DEBUG_PRINT(" bojler vystup - ");
+  // sensorsUT.getAddress(da, 6); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[10]);
+  // DEBUG_PRINT(" hala vstup - ");
+  // sensorsUT.getAddress(da, 7); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
+  // DEBUG_PRINT(tempUT[11]);
+  // DEBUG_PRINT(" hala vystup - ");
+  // sensorsUT.getAddress(da, 10); 
+  // printAddress(da);
+  // DEBUG_PRINTLN();
 
  /* for (byte i=0; i<sensorsUT.getDeviceCount(); i++) {
     DEBUG_PRINT(F("Temp UT["));
@@ -1030,19 +1035,19 @@ bool saveConfig() {
   doc["tempOFFDiff"]              = storage.tempOFFDiff;
   doc["tempAlarm"]                = storage.tempAlarm;
   doc["relayType"]                = storage.relayType;
-  doc["sensorOrder[0]"]           = sensorOrder[0];
-  doc["sensorOrder[1]"]           = sensorOrder[1];
-  doc["sensorOrder[2]"]           = sensorOrder[2];
-  doc["sensorOrder[3]"]           = sensorOrder[3];
-  doc["sensorOrder[4]"]           = sensorOrder[4];
-  doc["sensorOrder[5]"]           = sensorOrder[5];
-  doc["sensorOrder[6]"]           = sensorOrder[6];
-  doc["sensorOrder[7]"]           = sensorOrder[7];
-  doc["sensorOrder[8]"]           = sensorOrder[8];
-  doc["sensorOrder[9]"]           = sensorOrder[9];
-  doc["sensorOrder[10]"]          = sensorOrder[10];
-  doc["sensorOrder[11]"]          = sensorOrder[11];
-  doc["sensorOrder[12]"]          = sensorOrder[12];
+  // doc["sensorOrder[0]"]           = sensorOrder[0];
+  // doc["sensorOrder[1]"]           = sensorOrder[1];
+  // doc["sensorOrder[2]"]           = sensorOrder[2];
+  // doc["sensorOrder[3]"]           = sensorOrder[3];
+  // doc["sensorOrder[4]"]           = sensorOrder[4];
+  // doc["sensorOrder[5]"]           = sensorOrder[5];
+  // doc["sensorOrder[6]"]           = sensorOrder[6];
+  // doc["sensorOrder[7]"]           = sensorOrder[7];
+  // doc["sensorOrder[8]"]           = sensorOrder[8];
+  // doc["sensorOrder[9]"]           = sensorOrder[9];
+  // doc["sensorOrder[10]"]          = sensorOrder[10];
+  // doc["sensorOrder[11]"]          = sensorOrder[11];
+  // doc["sensorOrder[12]"]          = sensorOrder[12];
   File configFile = SPIFFS.open(CFGFILE, "w+");
   if (!configFile) {
     DEBUG_PRINTLN(F("Failed to open config file for writing"));
@@ -1087,45 +1092,45 @@ bool readConfig() {
         storage.tempAlarm     = doc["tempAlarm"];
         storage.relayType     = doc["relayType"];
         
-        sensorOrder[0] = doc["sensorOrder[0]"];
-        DEBUG_PRINT(F("sensorOrder[0]: "));
-        DEBUG_PRINTLN(sensorOrder[0]);
-        sensorOrder[1] = doc["sensorOrder[1]"];
-        DEBUG_PRINT(F("sensorOrder[1]: "));
-        DEBUG_PRINTLN(sensorOrder[1]);
-        sensorOrder[2] = doc["sensorOrder[2]"];
-        DEBUG_PRINT(F("sensorOrder[2]: "));
-        DEBUG_PRINTLN(sensorOrder[2]);
-        sensorOrder[3] = doc["sensorOrder[3]"];
-        DEBUG_PRINT(F("sensorOrder[3]: "));
-        DEBUG_PRINTLN(sensorOrder[3]);
-        sensorOrder[4] = doc["sensorOrder[4]"];
-        DEBUG_PRINT(F("sensorOrder[4]: "));
-        DEBUG_PRINTLN(sensorOrder[4]);
-        sensorOrder[5] = doc["sensorOrder[5]"];
-        DEBUG_PRINT(F("sensorOrder[5]: "));
-        DEBUG_PRINTLN(sensorOrder[5]);
-        sensorOrder[6] = doc["sensorOrder[6]"];
-        DEBUG_PRINT(F("sensorOrder[6]: "));
-        DEBUG_PRINTLN(sensorOrder[6]);
-        sensorOrder[7] = doc["sensorOrder[7]"];
-        DEBUG_PRINT(F("sensorOrder[7]: "));
-        DEBUG_PRINTLN(sensorOrder[7]);
-        sensorOrder[8] = doc["sensorOrder[8]"];
-        DEBUG_PRINT(F("sensorOrder[8]: "));
-        DEBUG_PRINTLN(sensorOrder[8]);
-        sensorOrder[9] = doc["sensorOrder[9]"];
-        DEBUG_PRINT(F("sensorOrder[9]: "));
-        DEBUG_PRINTLN(sensorOrder[9]);
-        sensorOrder[10] = doc["sensorOrder[10]"];
-        DEBUG_PRINT(F("sensorOrder[10]: "));
-        DEBUG_PRINTLN(sensorOrder[10]);
-        sensorOrder[11] = doc["sensorOrder[11]"];
-        DEBUG_PRINT(F("sensorOrder[11]: "));
-        DEBUG_PRINTLN(sensorOrder[11]);
-        sensorOrder[12] = doc["sensorOrder[12]"];
-        DEBUG_PRINT(F("sensorOrder[12]: "));
-        DEBUG_PRINTLN(sensorOrder[12]);
+        // sensorOrder[0] = doc["sensorOrder[0]"];
+        // DEBUG_PRINT(F("sensorOrder[0]: "));
+        // DEBUG_PRINTLN(sensorOrder[0]);
+        // sensorOrder[1] = doc["sensorOrder[1]"];
+        // DEBUG_PRINT(F("sensorOrder[1]: "));
+        // DEBUG_PRINTLN(sensorOrder[1]);
+        // sensorOrder[2] = doc["sensorOrder[2]"];
+        // DEBUG_PRINT(F("sensorOrder[2]: "));
+        // DEBUG_PRINTLN(sensorOrder[2]);
+        // sensorOrder[3] = doc["sensorOrder[3]"];
+        // DEBUG_PRINT(F("sensorOrder[3]: "));
+        // DEBUG_PRINTLN(sensorOrder[3]);
+        // sensorOrder[4] = doc["sensorOrder[4]"];
+        // DEBUG_PRINT(F("sensorOrder[4]: "));
+        // DEBUG_PRINTLN(sensorOrder[4]);
+        // sensorOrder[5] = doc["sensorOrder[5]"];
+        // DEBUG_PRINT(F("sensorOrder[5]: "));
+        // DEBUG_PRINTLN(sensorOrder[5]);
+        // sensorOrder[6] = doc["sensorOrder[6]"];
+        // DEBUG_PRINT(F("sensorOrder[6]: "));
+        // DEBUG_PRINTLN(sensorOrder[6]);
+        // sensorOrder[7] = doc["sensorOrder[7]"];
+        // DEBUG_PRINT(F("sensorOrder[7]: "));
+        // DEBUG_PRINTLN(sensorOrder[7]);
+        // sensorOrder[8] = doc["sensorOrder[8]"];
+        // DEBUG_PRINT(F("sensorOrder[8]: "));
+        // DEBUG_PRINTLN(sensorOrder[8]);
+        // sensorOrder[9] = doc["sensorOrder[9]"];
+        // DEBUG_PRINT(F("sensorOrder[9]: "));
+        // DEBUG_PRINTLN(sensorOrder[9]);
+        // sensorOrder[10] = doc["sensorOrder[10]"];
+        // DEBUG_PRINT(F("sensorOrder[10]: "));
+        // DEBUG_PRINTLN(sensorOrder[10]);
+        // sensorOrder[11] = doc["sensorOrder[11]"];
+        // DEBUG_PRINT(F("sensorOrder[11]: "));
+        // DEBUG_PRINTLN(sensorOrder[11]);
+        // sensorOrder[12] = doc["sensorOrder[12]"];
+        // DEBUG_PRINT(F("sensorOrder[12]: "));
+        // DEBUG_PRINTLN(sensorOrder[12]);
 
         return true;
       }
@@ -1150,31 +1155,31 @@ bool calcStat(void *) {  //run each second from timer
 void dsInit(void) {
   sensorsOUT.begin(); 
   sensorsIN.begin(); 
-  sensorsUT.begin(); 
+  //sensorsUT.begin(); 
   
-  if (sensorsUT.getDeviceCount()==1) {
-    DEBUG_PRINTLN(" sensor found");
-  } else {
-    DEBUG_PRINTLN(" sensor(s) found");
-  }
+  // if (sensorsUT.getDeviceCount()==1) {
+    // DEBUG_PRINTLN(" sensor found");
+  // } else {
+    // DEBUG_PRINTLN(" sensor(s) found");
+  // }
 
   sensorsIN.getAddress(inThermometer, 0); 
   sensorsOUT.getAddress(outThermometer, 0); 
 
   // Loop through each device, print out address
-  for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
-      // Search the wire for address
-    if (sensorsUT.getAddress(tempDeviceAddress, i)) {
-      memcpy(utT[i],tempDeviceAddress,8);
-    }
-  }
+  // for (byte i=0;i<sensorsUT.getDeviceCount(); i++) {
+      // // Search the wire for address
+    // if (sensorsUT.getAddress(tempDeviceAddress, i)) {
+      // memcpy(utT[i],tempDeviceAddress,8);
+    // }
+  // }
   sensorsIN.setResolution(TEMPERATURE_PRECISION);
   sensorsOUT.setResolution(TEMPERATURE_PRECISION);
-  sensorsUT.setResolution(TEMPERATURE_PRECISION);
+  //sensorsUT.setResolution(TEMPERATURE_PRECISION);
   
   sensorsIN.setWaitForConversion(false);
   sensorsOUT.setWaitForConversion(false);
-  sensorsUT.setWaitForConversion(false);
+  //sensorsUT.setWaitForConversion(false);
 
   //lcd.clear();
 }
@@ -1218,8 +1223,17 @@ bool reconnect(void *) {
   if (!client.connected()) {
     DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
-     if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "offline", false)) {
-      client.subscribe((String(mqtt_base) + "/#").c_str());
+     if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "offline", true)) {
+      //client.subscribe((String(mqtt_base) + "/#").c_str());
+ 
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str());
       client.publish((String(mqtt_base) + "/LWT").c_str(), "online", true);
       client.subscribe(mqtt_topic_weather);
       DEBUG_PRINTLN("connected");
