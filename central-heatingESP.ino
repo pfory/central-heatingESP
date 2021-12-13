@@ -1224,9 +1224,7 @@ bool reconnect(void *) {
     DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
      if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "offline", true)) {
-      //client.subscribe((String(mqtt_base) + "/#").c_str());
- 
-      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
+       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str());
@@ -1238,7 +1236,10 @@ bool reconnect(void *) {
       client.subscribe(mqtt_topic_weather);
       DEBUG_PRINTLN("connected");
     } else {
-      DEBUG_PRINT("failed, rc=");
+      DEBUG_PRINT("disconected.");
+      DEBUG_PRINT(" Wifi status:");
+      DEBUG_PRINT(WiFi.status());
+      DEBUG_PRINT(" Client status:");
       DEBUG_PRINTLN(client.state());
     }
   }
