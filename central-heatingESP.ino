@@ -1222,9 +1222,8 @@ bool sendDataMQTT(void *) {
 bool reconnect(void *) {
   if (!client.connected()) {
     DEBUG_PRINT("Attempting MQTT connection...");
-    // Attempt to connect
      if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "offline", true)) {
-       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str());
