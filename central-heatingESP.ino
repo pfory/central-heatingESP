@@ -330,6 +330,7 @@ void setup(void) {
   timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
   timer.every(MEAS_DELAY,     tempMeas);
   timer.every(1000,           calcStat);
+  timer.every(CONNECT_DELAY,  reconnect);
 #ifdef time  
   timer.every(500,            displayTime);
 #endif
