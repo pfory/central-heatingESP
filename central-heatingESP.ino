@@ -1200,8 +1200,8 @@ bool sendDataMQTT(void *) {
   client.publish((String(mqtt_base) + "/tINKamna").c_str(), String(tempIN).c_str());
   client.publish((String(mqtt_base) + "/tOUTKamna").c_str(), String(tempOUT).c_str());
   client.publish((String(mqtt_base) + "/sPumpKamna/status").c_str(), String(relayStatus==RELAY_ON ? 1 : 0).c_str());
-  client.publish((String(mqtt_base) + "/tempON").c_str(), String(storage.tempON).c_str());
-  client.publish((String(mqtt_base) + "/tempOFFDiff").c_str(), String(storage.tempOFFDiff).c_str());
+  //client.publish((String(mqtt_base) + "/tempON").c_str(), String(storage.tempON).c_str());
+  //client.publish((String(mqtt_base) + "/tempOFFDiff").c_str(), String(storage.tempOFFDiff).c_str());
 
   // sender.add("t0",                  tempUT[0]);
   // sender.add("t1",                  tempUT[1]);
