@@ -94,7 +94,7 @@ byte rowPins[ROWS]                    = {7,6,5,4}; //connect to the row pinouts 
 byte colPins[COLS]                    = {3,2,1,0}; //connect to the column pinouts of the keypad
 
 //Keypad_I2C keypad = Keypad_I2C( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR );
-Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR); 
+//Keypad_I2C keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR); 
 // #endif
 
 byte displayVar       = 1;
@@ -113,12 +113,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
     val += (char)payload[i];
   }
   DEBUG_PRINTLN();
-  lcd.clear();
-  lcd.print(topic);
-  lcd.print(": ");
-  lcd.print(val);
-  delay(500);
-  lcd.clear();
+  // lcd.clear();
+  // lcd.print(topic);
+  // lcd.print(": ");
+  // lcd.print(val);
+  // delay(500);
+  // lcd.clear();
   
   if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay_type_set)).c_str())==0) {
     DEBUG_PRINT("set relay to ");
@@ -228,7 +228,7 @@ void setup(void) {
   //tone(BUZZERPIN, 5000, 5);
 #endif  
   
-  keypad.begin();
+  //keypad.begin();
   
   readConfig();
   
@@ -379,7 +379,7 @@ void loop(void) {
 #ifdef beep  
   //peep.loop();
 #endif  
-  keyBoard();
+  //keyBoard();
   
 #ifdef PIR
   if (digitalRead(PIRPIN)==1) {
@@ -806,60 +806,60 @@ void testPumpProtect() {
 }
 
 
-void keyBoard() {
-  char key = keypad.getKey();
-  if (key!=NO_KEY) {
-    DEBUG_PRINTLN(key);
-    lcd.clear();
-    if (key=='1') {
-      displayVar = 1;
-      lcd.clear();
-    } else if (key=='2') {
-      displayVar = 2;
-      lcd.clear();
-    } else if (key=='3') {
-      displayVar = 3;
-      lcd.clear();
-    } else if (key=='4') {
-      displayVar = 4;
-      lcd.clear();
-    } else if (key=='5') {
-      displayVar = 5;
-      lcd.clear();
-    } else if (key=='6') {
-      displayVar = 60;
-      lcd.clear();
-    }
-    displayVarSub=key;
+// void keyBoard() {
+  // char key = keypad.getKey();
+  // if (key!=NO_KEY) {
+    // DEBUG_PRINTLN(key);
+    // lcd.clear();
+    // if (key=='1') {
+      // displayVar = 1;
+      // lcd.clear();
+    // } else if (key=='2') {
+      // displayVar = 2;
+      // lcd.clear();
+    // } else if (key=='3') {
+      // displayVar = 3;
+      // lcd.clear();
+    // } else if (key=='4') {
+      // displayVar = 4;
+      // lcd.clear();
+    // } else if (key=='5') {
+      // displayVar = 5;
+      // lcd.clear();
+    // } else if (key=='6') {
+      // displayVar = 60;
+      // lcd.clear();
+    // }
+    // displayVarSub=key;
     
-    /*
-    Keyboard layout
-    -----------
-    | 1 2 3 A |
-    | 4 5 6 B |
-    | 7 8 9 C |
-    | * 0 # D |
-    -----------
-    1 - normal - zobrazeni teplot
-    2 - verze FW, teoplota spinaní, diference, teplota alarmu
-    3 - nastavení teploty spínání
-    A - 
-    4 - nastavení teploty diference
-    5 - nastavení teploty alarmu
-    6 - nastavení hodin
-    B - 
-    7 - 
-    8 - 
-    9 - 
-    C - 
-    * - 
-    0 -
-    # - 
-    D - 
-    */
-    key = ' ';
-  }
-}
+    // /*
+    // Keyboard layout
+    // -----------
+    // | 1 2 3 A |
+    // | 4 5 6 B |
+    // | 7 8 9 C |
+    // | * 0 # D |
+    // -----------
+    // 1 - normal - zobrazeni teplot
+    // 2 - verze FW, teoplota spinaní, diference, teplota alarmu
+    // 3 - nastavení teploty spínání
+    // A - 
+    // 4 - nastavení teploty diference
+    // 5 - nastavení teploty alarmu
+    // 6 - nastavení hodin
+    // B - 
+    // 7 - 
+    // 8 - 
+    // 9 - 
+    // C - 
+    // * - 
+    // 0 -
+    // # - 
+    // D - 
+    // */
+    // key = ' ';
+  // }
+// }
 
 void displayInfo() {
   lcd.setCursor(0,0);

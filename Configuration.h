@@ -1,25 +1,17 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <FS.h>
-#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
-#include <Keypad_I2C.h>
-#include <Keypad.h>          // GDY120705
+//#include <FS.h>
+//#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <Ticker.h>
-#include <timer.h>
-#include <PubSubClient.h>
 #include <ArduinoJson.h>
 
 
 //SW name & version
-#define     VERSION                      "1.40"
+#define     VERSION                      "1.41"
 #define     SW_NAME                      "Central heat"
 
 #define timers
