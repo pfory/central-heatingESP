@@ -3,21 +3,19 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
-//#include <FS.h>
-//#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 
 
 //SW name & version
-#define     VERSION                      "1.41"
+#define     VERSION                      "1.6"
 #define     SW_NAME                      "Central heat"
 
 #define timers
 #define ota
 #define verbose
-#define time
+#define cas
 #define PIR
 
 /*
@@ -29,7 +27,6 @@ ESP8266 Wemos D1
 I2C display
 2 Relays module
 DALLAS temperature sensor
-keyboard
 */
 
 
@@ -54,7 +51,6 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 
 #define MIN_UNIT                            "m"
 
-//keypad i2c address
 #define I2CADDR                             0x20
 
 //display
@@ -62,15 +58,10 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 #define LCDROWS                             4
 #define LCDCOLS                             20
 
-#define TEMPERATURE_X                       4
-#define TEMPERATURE_Y                       3
-#define RELAY_STATUSX                       17
-#define RELAY_STATUSY                       3
-
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
-#define ONE_WIRE_BUS_IN                     D6 //MISO                       GPIO12
-#define ONE_WIRE_BUS_OUT                    D5 //SCK                        GPIO14
-#define ONE_WIRE_BUS_UT                     D7 //MOSI                       GPIO13
+#define ONE_WIRE_BUS_KAMNA                  D6 //MISO                       GPIO12
+#define ONE_WIRE_BUS_ROOM                   D5 //SCK                        GPIO14
+//#define ONE_WIRE_BUS_UT                   D7 //MOSI                       GPIO13
 #define RELAYPIN                            D3 //relay 10k Pull-up          GPIO0
 #define BUZZERPIN                           D8 //                           GPIO15
 #ifdef PIR
@@ -94,22 +85,24 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 
 #define TEMPERATURE_PRECISION 10
 
-#define TEMPINX                             0
+#define TEMPROOMX                           0
+#define TEMPROOMY                           0
+#define TEMPINX                             3
 #define TEMPINY                             0
-#define TEMPOUTX                            3
+#define TEMPOUTX                            6
 #define TEMPOUTY                            0
 #define TEMPSETONX                         18
 #define TEMPSETONY                          0
 #define TEMPSETOFFX                        15
 #define TEMPSETOFFY                         0
-#define RELAY_STATUSX                       6
+#define RELAY_STATUSX                      10
 #define RELAY_STATUSY                       0
 #define RUNMINTODAY_X                      15 
 #define RUNMINTODAY_Y                       3
 #define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
 
-#ifdef time
+#ifdef cas
 #define TIMEX                               0
 #define TIMEY                               3
 #endif
