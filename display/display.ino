@@ -5,8 +5,11 @@ int number[]      = {0x7E, 0x0C, 0xB6, 0x9E, 0xCC, 0xDA, 0xFA, 0x0E, 0xFE, 0xDE,
 int temperature   = 0;
 int cerpadlo      = 0;
 int blik          = 0;
+int jas[10];
+int jas_prumer    = 255;
+int jas_counter   = 0;
 
-//ADC_MODE(ADC_VCC);
+ADC_MODE(ADC_VCC);
 
 #ifdef serverHTTP
 void handleRoot() {
@@ -71,6 +74,7 @@ set_all(I2C_ADDR, 0);
   //timer.every(SEND_DELAY, sendDataMQTT);
   timer.every(CONNECT_DELAY, reconnect);
   timer.every(SHOW_DISPLAY, show_display);
+  timer.every(SHOW_DISPLAY * 10, change_brightness);
 #endif
 
   void * a;
@@ -99,9 +103,14 @@ void loop() {
 #endif
   drd.loop();
 }
+
 bool show_display(void *) {
   
-  int jas = map(analogRead(A0), 0, 1024, 0, 255);
+  if (jas_counter < 10) {
+    //jas[jas_counter] = map(analogRead(A0), 0, 1024, 10, 255);
+    jas[jas_counter] = map(ESP.getVcc(), 3000, 3600, 255, 10);
+    jas_counter++;
+  }
   
   int n1 = number[temperature / 10];
   int n2 = number[temperature % 10];
@@ -116,13 +125,32 @@ bool show_display(void *) {
       n2 |= 0 << 8; // desetinna tecka na druhe pozici zleva
     }
   }
-  print_num(I2C_ADDR, (n1 << 8) | n2, jas, false);
+  print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, false);
   
   //Serial.println(analogRead(A0));
-  Serial.println(jas);
+  Serial.println(jas_prumer);
   
   return true;
 }
+
+bool change_brightness(void *) {
+  jas_prumer = 0;
+  for (int i=0; i<jas_counter; i++) {
+    jas_prumer+=jas[i];
+  }
+  
+  for (int i=0; i<10; i++) {
+    jas[i]=0;
+  }
+  
+  jas_prumer = jas_prumer / jas_counter;
+  jas_counter = 0;
+  void * a;
+  sendDataMQTT(a);
+
+  return true;
+}
+
 
 void init_TLC59116(int addr) {
   
@@ -199,21 +227,16 @@ void print_num(int addr, int number, int pwm, bool d) {
   Wire.endTransmission();
 }
 
-// bool sendDataMQTT(void *) {
-  // digitalWrite(LED_BUILTIN, LOW);
-  // DEBUG_PRINT(F("Send data..."));
+bool sendDataMQTT(void *) {
+  digitalWrite(LED_BUILTIN, LOW);
+  DEBUG_PRINT(F("Send data..."));
 
-  // // client.publish((String(mqtt_base) + "/Temperature").c_str(), String(temperature).c_str());
-  // // client.publish((String(mqtt_base) + "/Press").c_str(), String(pressure).c_str());
-  // // client.publish((String(mqtt_base) + "/Temp085").c_str(), String(temperature085).c_str());
-  // // client.publish((String(mqtt_base) + "/Humidity").c_str(), String(humidity).c_str());
-  // // client.publish((String(mqtt_base) + "/Temp7021").c_str(), String(tempSI7021).c_str());
-  // // client.publish((String(mqtt_base) + "/DewPoint").c_str(), String(dewPoint).c_str());
+  client.publish((String(mqtt_base) + "/jas").c_str(), String(jas_prumer).c_str());
 
-  // digitalWrite(LED_BUILTIN, HIGH);
-  // DEBUG_PRINTLN(F("DONE!"));
-  // return true;
-// }
+  digitalWrite(LED_BUILTIN, HIGH);
+  DEBUG_PRINTLN(F("DONE!"));
+  return true;
+}
 
 bool reconnect(void *) {
   if (!client.connected()) {
