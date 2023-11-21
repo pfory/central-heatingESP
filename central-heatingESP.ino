@@ -28,7 +28,6 @@ float sensor[NUMBER_OF_DEVICES];
 float                 tempOUT                     = 0.f;
 float                 tempIN                      = 0.f;
 float                 tempROOM                    = 0.f;
-//float                 tempUT[12];              
 bool                  tempRefresh                 = false;
 float                 temp[15];              
 
@@ -162,6 +161,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINTLN(val.toInt());
     storage.tempAlarm = val.toInt();
     saveConfig();
+  } else if (strcmp(topic, mqtt_topic_tvymenikKamna)==0) {
+    DEBUG_PRINT("Temperature vymenik kamna: ");
+    DEBUG_PRINTLN(val.toFloat());
+    lcd.setCursor(0,1);
+    lcd.print("KAM:");
+    displayValue(TEMPVYMENIKKAMNA_X,TEMPVYMENIKKAMNA_Y, (int)round(val.toFloat()), 2, 0);
+    lcd.write(byte(0));
+    lcd.print("C");
+  } else if (strcmp(topic, mqtt_topic_tvymenikSolar)==0) {
+    DEBUG_PRINT("Temperature vymenik solar: ");
+    DEBUG_PRINTLN(val.toFloat());
+    lcd.setCursor(10,1);
+    lcd.print("SOL:");
+    displayValue(TEMPVYMENIKSOLAR_X,TEMPVYMENIKSOLAR_Y, (int)round(val.toFloat()), 2, 0);
+    lcd.write(byte(0));
+    lcd.print("C");
+  } else if (strcmp(topic, mqtt_topic_termohlavicePozice)==0) {
+    DEBUG_PRINT("Poloha termohlavice: ");
+    DEBUG_PRINTLN(val.toFloat());
+    displayValue(POSTERMOHLAVICE_X,POSTERMOHLAVICE_Y, (int)round(val.toFloat()), 3, 0);
+    lcd.write(byte(0));
+    lcd.print("%");
   }
 }
 
@@ -754,6 +775,9 @@ bool reconnect(void *) {
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str());
       client.publish((String(mqtt_base) + "/LWT").c_str(), "online", true);
       client.subscribe(mqtt_topic_weather);
+      client.subscribe(mqtt_topic_tvymenikKamna);
+      client.subscribe(mqtt_topic_tvymenikSolar);
+      client.subscribe(mqtt_topic_termohlavicePozice);
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINT("disconected.");
