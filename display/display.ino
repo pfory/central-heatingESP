@@ -127,9 +127,6 @@ bool show_display(void *) {
   }
   print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, false);
   
-  //Serial.println(analogRead(A0));
-  Serial.println(jas_prumer);
-  
   return true;
 }
 
@@ -145,8 +142,8 @@ bool change_brightness(void *) {
   
   jas_prumer = jas_prumer / jas_counter;
   jas_counter = 0;
-  void * a;
-  sendDataMQTT(a);
+  // void * a;
+  // sendDataMQTT(a);
 
   return true;
 }

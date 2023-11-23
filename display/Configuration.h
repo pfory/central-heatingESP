@@ -5,7 +5,7 @@
 #include <Wire.h>
 
 //SW name & version
-#define     VERSION                          "0.3"
+#define     VERSION                          "0.31"
 #define     SW_NAME                          "DisplayHeat"
 
 #define ota
@@ -36,7 +36,7 @@ static const char* const      mqtt_topic_cerpadlo            = "/home/Corridor/e
 //#define SEND_DELAY                           5000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000  //poslani statistiky kazdou minutu
 #define CONNECT_DELAY                        5000   //ms
-#define SHOW_DISPLAY                         1000   //refresh displeje
+#define SHOW_DISPLAY                         500   //refresh displeje
 
 #include <fce.h>
 
