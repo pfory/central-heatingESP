@@ -79,13 +79,12 @@ set_all(I2C_ADDR, 0);
 
   void * a;
   reconnect(a);
-  // sendDataMQTT(a);
 
   ticker.detach();
   //keep LED on
   digitalWrite(LED_BUILTIN, HIGH);
 
-  //drd.stop();
+  drd.stop();
 
   DEBUG_PRINTLN(F("SETUP END......................."));
 }
@@ -142,9 +141,6 @@ bool change_brightness(void *) {
   
   jas_prumer = jas_prumer / jas_counter;
   jas_counter = 0;
-  // void * a;
-  // sendDataMQTT(a);
-
   return true;
 }
 
@@ -224,16 +220,16 @@ void print_num(int addr, int number, int pwm, bool d) {
   Wire.endTransmission();
 }
 
-bool sendDataMQTT(void *) {
-  digitalWrite(LED_BUILTIN, LOW);
-  DEBUG_PRINT(F("Send data..."));
+// bool sendDataMQTT(void *) {
+  // digitalWrite(LED_BUILTIN, LOW);
+  // DEBUG_PRINT(F("Send data..."));
 
-  client.publish((String(mqtt_base) + "/jas").c_str(), String(jas_prumer).c_str());
+  // client.publish((String(mqtt_base) + "/jas").c_str(), String(jas_prumer).c_str());
 
-  digitalWrite(LED_BUILTIN, HIGH);
-  DEBUG_PRINTLN(F("DONE!"));
-  return true;
-}
+  // digitalWrite(LED_BUILTIN, HIGH);
+  // DEBUG_PRINTLN(F("DONE!"));
+  // return true;
+// }
 
 bool reconnect(void *) {
   if (!client.connected()) {
