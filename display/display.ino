@@ -67,6 +67,8 @@ void setup() {
 Wire.begin(SDA, SCL);
   
 init_TLC59116(I2C_ADDR);
+set_all(I2C_ADDR, 255);
+delay(2000);
 set_all(I2C_ADDR, 0);
 
 #ifdef timers
@@ -74,7 +76,6 @@ set_all(I2C_ADDR, 0);
   //timer.every(SEND_DELAY, sendDataMQTT);
   timer.every(CONNECT_DELAY, reconnect);
   timer.every(SHOW_DISPLAY, show_display);
-  timer.every(SHOW_DISPLAY * 10, change_brightness);
 #endif
 
   void * a;
@@ -83,8 +84,6 @@ set_all(I2C_ADDR, 0);
   ticker.detach();
   //keep LED on
   digitalWrite(LED_BUILTIN, HIGH);
-
-  drd.stop();
 
   DEBUG_PRINTLN(F("SETUP END......................."));
 }
@@ -104,56 +103,58 @@ void loop() {
 }
 
 bool show_display(void *) {
-  
   if (jas_counter < 10) {
     //jas[jas_counter] = map(analogRead(A0), 0, 1024, 10, 255);
     jas[jas_counter] = map(ESP.getVcc(), 3000, 3600, 255, 10);
     jas_counter++;
+  } else {
+    change_brightness();
   }
   
   int n1 = number[temperature / 10];
   int n2 = number[temperature % 10];
 
-  // n1 |= 1 << 8; // desetinna tecka na prvni pozici zleva
-  if (cerpadlo==1) {
-    if (blik==0) {
-      blik=1;
-      n2 |= 1 << 8; // desetinna tecka na druhe pozici zleva
+  if (blik==0) {
+    blik=1;
+    if (cerpadlo==1) { //cerpadlo==1
+      n1 |= 0 << 8;
     } else {
-      blik=0;
-      n2 |= 0 << 8; // desetinna tecka na druhe pozici zleva
+      n1 |= 0 << 8;
     }
+    n2 |= 1 << 8;
+  } else {
+    blik=0;
+    if (cerpadlo==1) { //cerpadlo==1
+      n1 |= 1 << 8;
+    } else {
+      n1 |= 0 << 8;
+    }
+    n2 |= 0 << 8;
   }
-  print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, false);
+
+  print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, true);
   
   return true;
 }
 
-bool change_brightness(void *) {
+void change_brightness() {
   jas_prumer = 0;
-  for (int i=0; i<jas_counter; i++) {
-    jas_prumer+=jas[i];
-  }
-  
   for (int i=0; i<10; i++) {
+    jas_prumer+=jas[i];
     jas[i]=0;
   }
   
-  jas_prumer = jas_prumer / jas_counter;
+  jas_prumer /= 10;
   jas_counter = 0;
-  return true;
 }
 
 
 void init_TLC59116(int addr) {
-  
   Wire.beginTransmission(addr);
   Wire.write(0x80);
-
   Wire.write(0x00);  // Register 00 /  Mode1  
   Wire.write(0x00);  // Register 01 /  Mode2 
-
-  Wire.write(0x50);  // Register 02 /  PWM LED 1
+  Wire.write(0x00);  // Register 02 /  PWM LED 1
   Wire.write(0x00);  // Register 03 /  PWM LED 2    
   Wire.write(0x00);  // Register 04 /  PWM LED 3
   Wire.write(0x00);  // Register 05 /  PWM LED 4
@@ -169,7 +170,6 @@ void init_TLC59116(int addr) {
   Wire.write(0x00);  // Register 0F /  PWM LED 14
   Wire.write(0x00);  // Register 10 /  PWM LED 15
   Wire.write(0x00);  // Register 11 /  PWM LED 16
-
   Wire.write(0xFF);  // Register 12 /  Group duty cycle control
   Wire.write(0x00);  // Register 13 /  Group frequency
   Wire.write(0xAA);  // Register 14 /  LED output state 0  // Default alle LEDs auf PWM 0xAA
@@ -194,13 +194,13 @@ void set_all(int addr, int pwm) {
   Wire.endTransmission();
 }
 
-void set_pin(int addr, int pin, int pwm) {
-  Wire.begin();         
-  Wire.beginTransmission(addr); 
-  Wire.write(0x01 + pin);    // Register LED-Nr
-  Wire.write(pwm);
-  Wire.endTransmission(); 
-}
+// void set_pin(int addr, int pin, int pwm) {
+  // Wire.begin();         
+  // Wire.beginTransmission(addr); 
+  // Wire.write(0x01 + pin);    // Register LED-Nr
+  // Wire.write(pwm);
+  // Wire.endTransmission(); 
+// }
 
 void print_num(int addr, int number, int pwm, bool d) {
   Wire.begin();                 
@@ -209,14 +209,14 @@ void print_num(int addr, int number, int pwm, bool d) {
   for (int i=1 ; i < 17; i++){      // 16Bytes (Register 02h bis 11h)
     if (bitRead(number, i)){
       Wire.write(pwm);
-      if (d) Serial.print(1);
+      if (d) DEBUG_PRINT(1);
     }else{
       Wire.write(0);
-      if (d) Serial.print(0);
+      if (d) DEBUG_PRINT(0);
     }
-    if (d) if (i == 8) Serial.print(" ");
+    if (d) if (i == 8) DEBUG_PRINT(" ");
   }
-  if (d) Serial.println();
+  if (d) DEBUG_PRINTLN();
   Wire.endTransmission();
 }
 
