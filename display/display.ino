@@ -1,6 +1,17 @@
 #include "Configuration.h"
 
-int number[]      = {0x7E, 0x0C, 0xB6, 0x9E, 0xCC, 0xDA, 0xFA, 0x0E, 0xFE, 0xDE, 0x00};
+int number[]      = {0x7E, 0x0C, 0xB6, 0x9E, 0xCC, 0xDA, 0xFA, 0x0E, 0xFE, 0xDE, 0x00}; //0,1,2...9,nic
+//      A
+//  F       B
+//      G
+//  E       C
+//      D      P
+
+//       GFED CBAP
+//0x7E = 0111 1110 = FEDCBA    0
+//0x0C = 0000 1100 = CB        1
+//0xB6 = 1011 0110 = GEDBA     2
+//0x9E = 1001 1110 = GDCBA     3
 
 int temperature   = 0;
 int cerpadlo      = 0;
@@ -78,14 +89,17 @@ set_all(I2C_ADDR, 0);
   timer.every(SHOW_DISPLAY, show_display);
 #endif
 
-  void * a;
+  void * a=0;
   reconnect(a);
+  sendNetInfoMQTT();
+  sendStatisticMQTT(a);
+
 
   ticker.detach();
   //keep LED on
   digitalWrite(LED_BUILTIN, HIGH);
 
-  DEBUG_PRINTLN(F("SETUP END......................."));
+  DEBUG_PRINTLN(F("SETUP END."));
 }
 
 
@@ -132,7 +146,7 @@ bool show_display(void *) {
     n2 |= 0 << 8;
   }
 
-  print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, true);
+  print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, false);
   
   return true;
 }
@@ -233,7 +247,7 @@ void print_num(int addr, int number, int pwm, bool d) {
 
 bool reconnect(void *) {
   if (!client.connected()) {
-    DEBUG_PRINT("Attempting MQTT connection...");
+    DEBUG_PRINTLN("Attempting MQTT connection...");
     if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "offline", true)) {
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str());
