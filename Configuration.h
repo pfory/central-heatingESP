@@ -120,7 +120,7 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
  
 #define SAFETY_ON                           86.0 //teplota, pri niz rele vzdy sepne
                                      
-#define SEND_DELAY                          60000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                          15000  //prodleva mezi poslanim dat v ms
 //#define SHOW_INFO_DELAY                     5000  //
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define MEAS_DELAY                          2000  //mereni teplot
