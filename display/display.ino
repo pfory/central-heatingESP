@@ -128,23 +128,27 @@ bool show_display(void *) {
   int n1 = number[temperature / 10];
   int n2 = number[temperature % 10];
 
-  if (blik==0) {
-    blik=1;
-    if (cerpadlo==1) { //cerpadlo==1
-      n1 |= 0 << 8;
-    } else {
-      n1 |= 0 << 8;
-    }
-    n2 |= 1 << 8;
-  } else {
-    blik=0;
-    if (cerpadlo==1) { //cerpadlo==1
-      n1 |= 1 << 8;
-    } else {
-      n1 |= 0 << 8;
-    }
-    n2 |= 0 << 8;
+  if (cerpadlo==0) { //cerpadlo==1
+    n1 |= 0 << 8;
   }
+
+  if (cerpadlo==1) { //cerpadlo==1
+    if (blik%2==0) {
+      n2 |= 1 << 8;
+      n1 |= 0 << 8;
+    }
+    if (blik%2==1) {
+      n2 |= 0 << 8;
+      n1 |= 1 << 8;
+    }
+  } else {
+    if (blik%8<=3) {
+      n2 |= 0 << 8;
+    } else {
+      n2 |= 1 << 8;
+    }
+  }
+  blik++;
 
   print_num(I2C_ADDR, (n1 << 8) | n2, jas_prumer, false);
   
