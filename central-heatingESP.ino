@@ -53,8 +53,8 @@ struct StoreStruct {
   float           tempAlarm;
   int             relayType;
 } storage = {
-  50,
-  2,
+  58,
+  3,
   90,
   RELAY_TYPE_AUTO
 };
@@ -313,7 +313,7 @@ void setup(void) {
 #ifdef timers
   //setup timers
   timer.every(SEND_DELAY,     sendDataMQTT);
-  timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
+  //timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
   timer.every(MEAS_DELAY,     tempMeas);
   timer.every(1000,           calcStat);
   timer.every(CONNECT_DELAY,  reconnect);
