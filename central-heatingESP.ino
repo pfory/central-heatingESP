@@ -321,9 +321,9 @@ void setup(void) {
   timer.every(500,            displayTime);
 #endif
 #endif
-  void * a;
+  void * a=0;
   reconnect(a);
-  sendStatisticMQTT(a);
+  //sendStatisticMQTT(a);
   sendNetInfoMQTT();
   
   ticker.detach();
