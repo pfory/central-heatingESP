@@ -9,14 +9,14 @@
 
 
 //SW name & version
-#define     VERSION                      "1.72"
+#define     VERSION                      "1.73"
 #define     SW_NAME                      "Central heat"
 
 #define timers
 #define ota
 #define verbose
 #define cas
-#define PIR
+//#define PIR
 
 /*
 --------------------------------------------------------------------------------------------------------------------------

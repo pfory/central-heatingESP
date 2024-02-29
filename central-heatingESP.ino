@@ -330,7 +330,7 @@ void setup(void) {
   //keep LED on
   digitalWrite(LED_BUILTIN, HIGH);
 
-  drd.stop();
+  drd->stop();
 
   DEBUG_PRINTLN(F("SETUP END......................."));
 }
