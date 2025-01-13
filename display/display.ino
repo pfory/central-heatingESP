@@ -113,7 +113,7 @@ void loop() {
 #ifdef ota
   ArduinoOTA.handle();
 #endif
-  drd.loop();
+  drd->loop();
 }
 
 bool show_display(void *) {
