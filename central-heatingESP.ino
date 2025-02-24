@@ -117,7 +117,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       DEBUG_PRINTLN(F("AUTO"));
     }
     saveConfig();
-    void * a;
+    void * a=0;
     sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
     printMessageToLCD(topic, val);
@@ -148,13 +148,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       lcd.print("         "); 
     }
+  } else if (strcmp(topic, mqtt_topic_vytezovac_min)==0) {
+    DEBUG_PRINT("Vytezovac minut: ");
+    DEBUG_PRINTLN(val.toInt());
+    lcd.setCursor(VYTEZOVAC_MIN_X,VYTEZOVAC_MIN_Y);
+    lcd.print(val.toInt());
+    lcd.print("m");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature for ON: ");
     DEBUG_PRINTLN(val.toInt());
     storage.tempON = val.toInt();
     saveConfig();
-    void * a;
+    void * a=0;
     sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempOFFDiff)).c_str())==0) {
     printMessageToLCD(topic, val);
@@ -162,7 +168,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINTLN(val.toInt());
     storage.tempOFFDiff = val.toInt();
     saveConfig();
-    void * a;
+    void * a=0;
     sendStatisticMQTT(a);
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempAlarm)).c_str())==0) {
     printMessageToLCD(topic, val);
@@ -229,11 +235,10 @@ void setup(void) {
 #endif
 
   //filesystem
-  SPIFFS.begin();
+  LittleFS.begin();
   FSInfo fs_info;
-  SPIFFS.info(fs_info);
-  printf("SPIFFS: %lu of %lu bytes used.\n",
-         fs_info.usedBytes, fs_info.totalBytes);
+  LittleFS.info(fs_info);
+  printf("LittleFS: %iu of %iu bytes used.\n", fs_info.usedBytes, fs_info.totalBytes);
          
 #ifdef beep
   //peep.Delay(100,40,1,255);
@@ -524,9 +529,6 @@ void printTemp() {
   DEBUG_PRINT(F("Temp OUT: "));
   DEBUG_PRINT(tempOUT); 
   DEBUG_PRINTLN();
-  DeviceAddress da;
-  
-  
 }
 
 
@@ -536,7 +538,7 @@ void printTemp() {
   --------------------
 0|20/56/66 CER   40/45
 1|KAM:39°C  SOL:23°C  
-2|100% VYTEZOVAC      
+2|100% VYTEZOVAC 1000m
 3|19:20 15°C     1440m
   --------------------
   01234567890123456789  
@@ -651,26 +653,26 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
 bool saveConfig() {
   DEBUG_PRINTLN(F("Saving config..."));
 
-  // if SPIFFS is not usable
-  if (!SPIFFS.begin() || !SPIFFS.exists(CFGFILE) ||
-      !SPIFFS.open(CFGFILE, "w"))
+  // if LittleFS is not usable
+  if (!LittleFS.begin() || !LittleFS.exists(CFGFILE) ||
+      !LittleFS.open(CFGFILE, "w"))
   {
-    DEBUG_PRINTLN(F("Need to format SPIFFS: "));
-    SPIFFS.end();
-    SPIFFS.begin();
-    DEBUG_PRINTLN(SPIFFS.format());
+    DEBUG_PRINTLN(F("Need to format LittleFS: "));
+    LittleFS.end();
+    LittleFS.begin();
+    DEBUG_PRINTLN(LittleFS.format());
   }
 
-  StaticJsonDocument<1024> doc;
+  JsonDocument doc;
 
   doc["tempON"]                   = storage.tempON;
   doc["tempOFFDiff"]              = storage.tempOFFDiff;
   doc["tempAlarm"]                = storage.tempAlarm;
   doc["relayType"]                = storage.relayType;
-  File configFile = SPIFFS.open(CFGFILE, "w+");
+  File configFile = LittleFS.open(CFGFILE, "w+");
   if (!configFile) {
     DEBUG_PRINTLN(F("Failed to open config file for writing"));
-    SPIFFS.end();
+    LittleFS.end();
     return false;
   } else {
     if (isDebugEnabled) {
@@ -678,7 +680,7 @@ bool saveConfig() {
     }
     serializeJson(doc, configFile);
     configFile.close();
-    SPIFFS.end();
+    LittleFS.end();
     DEBUG_PRINTLN(F("\nSaved successfully"));
     return true;
   }
@@ -687,12 +689,12 @@ bool saveConfig() {
 bool readConfig() {
   DEBUG_PRINTLN();
   DEBUG_PRINT(F("Mounting FS..."));
-  if (SPIFFS.begin()) {
+  if (LittleFS.begin()) {
     DEBUG_PRINTLN(F(" mounted!"));
-    if (SPIFFS.exists(CFGFILE)) {
+    if (LittleFS.exists(CFGFILE)) {
       // file exists, reading and loading
       DEBUG_PRINTLN(F("Reading config file"));
-      File configFile = SPIFFS.open(CFGFILE, "r");
+      File configFile = LittleFS.open(CFGFILE, "r");
       if (configFile) {
         DEBUG_PRINTLN(F("Opened config file"));
 
@@ -703,7 +705,7 @@ bool readConfig() {
          DEBUG_PRINTLN(json);
         }
         
-        DynamicJsonDocument doc(1024);
+        JsonDocument doc;
         deserializeJson(doc, json);
 
         storage.tempON        = doc["tempON"];
@@ -787,6 +789,7 @@ bool reconnect(void *) {
       client.subscribe(mqtt_topic_tvymenikSolar);
       client.subscribe(mqtt_topic_termohlavicePozice);
       client.subscribe(mqtt_topic_vytezovac);
+      client.subscribe(mqtt_topic_vytezovac_min);
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINT("disconected.");
