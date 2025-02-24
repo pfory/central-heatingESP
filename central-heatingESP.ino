@@ -139,6 +139,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
     lcd.write(byte(0));
     lcd.print("C");
+  } else if (strcmp(topic, mqtt_topic_vytezovac)==0) {
+    DEBUG_PRINT("Vytezovac: ");
+    DEBUG_PRINTLN(val.toInt());
+    lcd.setCursor(VYTEZOVAC_X,VYTEZOVAC_Y);
+    if (val=="1") {
+      lcd.print("VYTEZOVAC"); 
+    } else {
+      lcd.print("         "); 
+    }
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_setTempON)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("Set temperature for ON: ");
@@ -181,7 +190,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINT("Poloha termohlavice: ");
     DEBUG_PRINTLN(val.toFloat());
     displayValue(POSTERMOHLAVICE_X,POSTERMOHLAVICE_Y, (int)round(val.toFloat()), 3, 0);
-    lcd.write(byte(0));
     lcd.print("%");
   }
 }
@@ -527,8 +535,8 @@ void printTemp() {
   01234567890123456789
   --------------------
 0|20/56/66 CER   40/45
-1|                    
-2|                    
+1|KAM:39°C  SOL:23°C  
+2|100% VYTEZOVAC      
 3|19:20 15°C     1440m
   --------------------
   01234567890123456789  
@@ -778,6 +786,7 @@ bool reconnect(void *) {
       client.subscribe(mqtt_topic_tvymenikKamna);
       client.subscribe(mqtt_topic_tvymenikSolar);
       client.subscribe(mqtt_topic_termohlavicePozice);
+      client.subscribe(mqtt_topic_vytezovac);
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINT("disconected.");

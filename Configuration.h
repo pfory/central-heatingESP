@@ -9,7 +9,7 @@
 
 
 //SW name & version
-#define     VERSION                      "1.73"
+#define     VERSION                      "1.80"
 #define     SW_NAME                      "Central heat"
 
 #define timers
@@ -36,8 +36,9 @@ static const char* const      mqtt_key                       = "hanka12";
 static const char* const      mqtt_base                      = "/home/Corridor/esp06";
 static const char* const      mqtt_topic_tvymenikKamna       = "/home/Corridor/esp07/tBojler2";
 static const char* const      mqtt_topic_tvymenikSolar       = "/home/Corridor/esp07/tBojler1";
-static const char* const      mqtt_topic_termohlavicePozice  = "/home/zigbee2mqtt/TermohlaviceLoznice/pozice";
+static const char* const      mqtt_topic_termohlavicePozice  = "/home/zigbee2mqtt/Termohlavice/pozice";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
+static const char* const      mqtt_topic_vytezovac           = "/home/Switch/POWER_NUM";
 static const char* const      mqtt_topic_setTempON           = "tempON/set";
 static const char* const      mqtt_topic_setTempOFFDiff      = "tempOFFDiff/set";
 static const char* const      mqtt_topic_setTempAlarm        = "tempAlarm/set";
@@ -107,6 +108,8 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 #define TEMPVYMENIKSOLAR_Y                  1
 #define POSTERMOHLAVICE_X                   0
 #define POSTERMOHLAVICE_Y                   2
+#define VYTEZOVAC_X                         5
+#define VYTEZOVAC_Y                         2
 
 #ifdef cas
 #define TIMEX                               0
