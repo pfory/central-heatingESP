@@ -9,7 +9,7 @@
 
 
 //SW name & version
-#define     VERSION                      "1.81"
+#define     VERSION                      "1.9"
 #define     SW_NAME                      "Central heat"
 
 #define timers

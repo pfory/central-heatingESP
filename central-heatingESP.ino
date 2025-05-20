@@ -470,33 +470,41 @@ bool tempMeas(void *) {
   sensorROOM.requestTemperatures(); // Send the command to get temperatures
   sensorsKAMNA.requestTemperatures(); // Send the command to get temperatures
   DEBUG_PRINTLN(F("DONE"));
-  
-  float tempTemp=(float)TEMP_ERR;
-  for (byte j=0;j<10;j++) { //try to read temperature ten times
-    tempTemp = sensorsKAMNA.getTempC(inThermometer);
-    if (tempTemp>=-55) {
-      break;
-    }
-  }
-  tempIN = tempTemp;
-  
-  tempTemp=(float)TEMP_ERR;
-  for (byte j=0;j<10;j++) { //try to read temperature ten times
-    tempTemp = sensorsKAMNA.getTempC(outThermometer);
-    if (tempTemp>=-55) {
-      break;
-    }
-  }
-  tempOUT = tempTemp;
 
-  tempTemp=(float)TEMP_ERR;
-  for (byte j=0;j<10;j++) { //try to read temperature ten times
-    tempTemp = sensorROOM.getTempC(roomThermometer);
-    if (tempTemp>=-55) {
-      break;
-    }
-  }
-  tempROOM = tempTemp;
+  float t_temp=sensorsKAMNA.getTempC(inThermometer);
+  if (t_temp>TEMP_ERR) tempIN         = t_temp;
+  t_temp=sensorsKAMNA.getTempC(outThermometer);
+  if (t_temp>TEMP_ERR) tempOUT        = t_temp;
+  t_temp=sensorROOM.getTempC(roomThermometer);
+  if (t_temp>TEMP_ERR) tempROOM       = t_temp;
+
+  
+  // float tempTemp=(float)TEMP_ERR;
+  // for (byte j=0;j<10;j++) { //try to read temperature ten times
+    // tempTemp = sensorsKAMNA.getTempC(inThermometer);
+    // if (tempTemp>=-55) {
+      // break;
+    // }
+  // }
+  // tempIN = tempTemp;
+  
+  // tempTemp=(float)TEMP_ERR;
+  // for (byte j=0;j<10;j++) { //try to read temperature ten times
+    // tempTemp = sensorsKAMNA.getTempC(outThermometer);
+    // if (tempTemp>=-55) {
+      // break;
+    // }
+  // }
+  // tempOUT = tempTemp;
+
+  // tempTemp=(float)TEMP_ERR;
+  // for (byte j=0;j<10;j++) { //try to read temperature ten times
+    // tempTemp = sensorROOM.getTempC(roomThermometer);
+    // if (tempTemp>=-55) {
+      // break;
+    // }
+  // }
+  // tempROOM = tempTemp;
 
   
   //printTemp();
